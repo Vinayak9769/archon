@@ -19,14 +19,14 @@ const MermaidVisualizer = dynamic(() => import("./design/[designId]/MermaidVisua
 const DatabaseSchemaVisualizer = dynamic(() => import("./design/[designId]/DatabaseSchemaVisualizer"), { ssr: false });
 
 const statusMap: Record<string, { label: string; color: string; bg: string; Icon: React.ElementType }> = {
-  completed: { label: "Completed", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20", Icon: CheckCircle2 },
-  awaiting_architecture_approval: { label: "Awaiting Review", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", Icon: Clock },
-  awaiting_cpm_approval: { label: "Awaiting Review", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", Icon: Clock },
-  awaiting_database_approval: { label: "Awaiting Review", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", Icon: Clock },
+  completed: { label: "Completed", color: "text-zinc-200", bg: "bg-zinc-800/10 border-zinc-700/20", Icon: CheckCircle2 },
+  awaiting_architecture_approval: { label: "Awaiting Review", color: "text-zinc-350", bg: "bg-zinc-800/10 border-zinc-700/20", Icon: Clock },
+  awaiting_cpm_approval: { label: "Awaiting Review", color: "text-zinc-350", bg: "bg-zinc-800/10 border-zinc-700/20", Icon: Clock },
+  awaiting_database_approval: { label: "Awaiting Review", color: "text-zinc-350", bg: "bg-zinc-800/10 border-zinc-700/20", Icon: Clock },
   building_architecture: { label: "Generating", color: "text-zinc-400", bg: "bg-zinc-900/40 border-zinc-800/40", Icon: Loader2 },
   building_cpm: { label: "Generating", color: "text-zinc-400", bg: "bg-zinc-900/40 border-zinc-800/40", Icon: Loader2 },
   building_database: { label: "Generating", color: "text-zinc-400", bg: "bg-zinc-900/40 border-zinc-800/40", Icon: Loader2 },
-  validating: { label: "Validating PRD", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20", Icon: Loader2 },
+  validating: { label: "Validating PRD", color: "text-zinc-400", bg: "bg-zinc-850/10 border-zinc-700/20", Icon: Loader2 },
   clarifying: { label: "Clarifying", color: "text-zinc-400", bg: "bg-zinc-900/40 border-zinc-800/40", Icon: Clock },
 };
 
@@ -167,13 +167,7 @@ export default function ProjectDetailsPage() {
   }, [currentDesign]);
 
   const getMethodColor = (method: string) => {
-    switch (method.toUpperCase()) {
-      case "GET": return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-      case "POST": return "bg-blue-500/10 text-blue-400 border-blue-500/20";
-      case "PUT": return "bg-amber-500/10 text-amber-400 border-amber-500/20";
-      case "DELETE": return "bg-red-500/10 text-red-400 border-red-500/20";
-      default: return "bg-zinc-800 text-zinc-400 border-zinc-700";
-    }
+    return "bg-zinc-800/20 text-zinc-300 border-zinc-700/30";
   };
 
   const openapiYamlText = useMemo(() => {
@@ -250,7 +244,7 @@ export default function ProjectDetailsPage() {
             </div>
             <Link
               href={`/projects/${project.id}/new-design`}
-              className="flex items-center gap-1 px-3 py-1.5 bg-indigo-650 hover:bg-indigo-600 border border-indigo-500/35 text-indigo-150 text-xs font-semibold rounded-lg transition-all"
+              className="flex items-center gap-1 px-3 py-1.5 bg-zinc-850 hover:bg-zinc-800 border border-zinc-700/35 text-zinc-100 text-xs font-semibold rounded-lg transition-all"
             >
               <Plus className="w-3 h-3" /> New Run
             </Link>
@@ -265,7 +259,7 @@ export default function ProjectDetailsPage() {
           <p className="text-xs text-zinc-600 mb-6 max-w-sm">Connect a product description to run architecture validation, database schemas, and API spec analysis.</p>
           <Link
             href={`/projects/${project.id}/new-design`}
-            className="flex items-center gap-1.5 px-4.5 py-2 bg-indigo-650 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg transition-all"
+            className="flex items-center gap-1.5 px-4.5 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs font-bold rounded-lg transition-all shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" /> Start First Design Run
           </Link>
@@ -299,8 +293,8 @@ export default function ProjectDetailsPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <ScoreRing score={overallScore} label="Overall Project Score" colorClass="text-zinc-400 score-glow" />
                   <ScoreRing score={archScore} label="Architecture Score" colorClass="text-zinc-400" />
-                  <ScoreRing score={dbScore} label="Database Score" colorClass="text-emerald-400" />
-                  <ScoreRing score={apiScore} label="API Score" colorClass="text-blue-400" />
+                  <ScoreRing score={dbScore} label="Database Score" colorClass="text-zinc-350" />
+                  <ScoreRing score={apiScore} label="API Score" colorClass="text-zinc-300" />
                 </div>
 
                 {/* Dashboard grid metrics */}
@@ -324,7 +318,7 @@ export default function ProjectDetailsPage() {
                     <ul className="space-y-1 overflow-y-auto flex-1 pr-1">
                       {services.map((svc: string) => (
                         <li key={svc} className="text-xs text-zinc-350 flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-555" />
+                           <span className="w-1.5 h-1.5 rounded-full bg-zinc-650" />
                           <span className="font-semibold">{svc} Service</span>
                         </li>
                       ))}
@@ -333,13 +327,13 @@ export default function ProjectDetailsPage() {
 
                   <Card className="bg-[#111113] border-zinc-800/60 p-5 hover:border-zinc-700/60 transition-all h-36 flex flex-col">
                     <div className="flex items-center gap-2 text-zinc-450 mb-3 flex-shrink-0">
-                      <Database className="w-4 h-4 text-emerald-400" />
+                      <Database className="w-4 h-4 text-zinc-400" />
                       <span className="text-[10px] font-bold uppercase tracking-wider font-mono">Database Tables</span>
                     </div>
                     <ul className="space-y-1 overflow-y-auto flex-1 pr-1">
                       {tables.map((tbl: string) => (
                         <li key={tbl} className="text-xs text-zinc-350 flex items-center gap-2 font-mono">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-555" />
+                           <span className="w-1.5 h-1.5 rounded-full bg-zinc-650" />
                           {tbl}
                         </li>
                       ))}
@@ -348,7 +342,7 @@ export default function ProjectDetailsPage() {
 
                   <Card className="bg-[#111113] border-zinc-800/60 p-5 hover:border-zinc-700/60 transition-all flex flex-col justify-between h-36">
                     <div className="flex items-center gap-2 text-zinc-450">
-                      <Code2 className="w-4 h-4 text-blue-400" />
+                      <Code2 className="w-4 h-4 text-zinc-400" />
                       <span className="text-[10px] font-bold uppercase tracking-wider font-mono">API Specs</span>
                     </div>
                     <div>
@@ -362,7 +356,7 @@ export default function ProjectDetailsPage() {
                 {currentDesign?.status === "completed" && (
                   <Link href={`/projects/${id}/design/${currentDesign.id}/backlog`}>
                     <Card className="bg-[#111113] border-zinc-800/60 hover:border-zinc-700/60 transition-all p-5 flex items-center gap-4 cursor-pointer group">
-                      <div className="w-10 h-10 rounded-xl bg-zinc-900/40 border border-zinc-800/40 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-500/15 transition-colors">
+                      <div className="w-10 h-10 rounded-xl bg-zinc-900/40 border border-zinc-800/40 flex items-center justify-center flex-shrink-0 group-hover:bg-zinc-800/40 transition-colors">
                         <Layers className="w-5 h-5 text-zinc-400" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -446,17 +440,17 @@ export default function ProjectDetailsPage() {
 
                         <Card className="bg-[#111113] border-zinc-800/60 p-4">
                           <div className="flex items-center gap-2 border-b border-zinc-900 pb-2 mb-3">
-                            <Globe className="w-4 h-4 text-amber-400" />
+                            <Globe className="w-4 h-4 text-zinc-400" />
                             <h4 className="text-xs font-bold text-zinc-200">Integrations</h4>
                           </div>
                           <div className="space-y-2">
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-zinc-350 font-medium">Stripe Payment Gateway</span>
-                              <Badge className="bg-amber-950/20 text-amber-400 border border-amber-900/30 text-[9.5px]">Active</Badge>
+                              <Badge className="bg-zinc-850/20 text-zinc-300 border border-zinc-700/30 text-[9.5px]">Active</Badge>
                             </div>
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-zinc-350 font-medium">SendGrid Notifications</span>
-                              <Badge className="bg-amber-950/20 text-amber-400 border border-amber-900/30 text-[9.5px]">Active</Badge>
+                              <Badge className="bg-zinc-850/20 text-zinc-300 border border-zinc-700/30 text-[9.5px]">Active</Badge>
                             </div>
                           </div>
                         </Card>
@@ -475,25 +469,25 @@ export default function ProjectDetailsPage() {
                       <div className="space-y-3">
                         {archParsed?.errors && archParsed.errors.map((err: any, idx: number) => (
                           <div key={`arch-err-${idx}`} className="flex items-start gap-2 text-[11px] leading-relaxed">
-                            <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                            <XCircle className="w-4 h-4 text-zinc-500 flex-shrink-0 mt-0.5" />
                             <div>
-                              <span className="font-bold text-red-450 block">{err.message || "Architecture Error"}</span>
+                              <span className="font-bold text-zinc-200 block">{err.message || "Architecture Error"}</span>
                               {err.affected_item && <span className="text-zinc-500">Affected item: {err.affected_item}</span>}
                             </div>
                           </div>
                         ))}
                         {archParsed?.warnings && archParsed.warnings.map((warn: any, idx: number) => (
                           <div key={`arch-warn-${idx}`} className="flex items-start gap-2 text-[11px] leading-relaxed">
-                            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                            <AlertTriangle className="w-4 h-4 text-zinc-450 flex-shrink-0 mt-0.5" />
                             <div>
-                              <span className="font-bold text-amber-450 block">{warn.message || "Architecture Warning"}</span>
+                              <span className="font-bold text-zinc-300 block">{warn.message || "Architecture Warning"}</span>
                               {warn.affected_item && <span className="text-zinc-500">Affected item: {warn.affected_item}</span>}
                             </div>
                           </div>
                         ))}
                         {archParsed?.recommendations && archParsed.recommendations.map((rec: any, idx: number) => (
                           <div key={`arch-rec-${idx}`} className="flex items-start gap-2 text-[11px] leading-relaxed">
-                            <Check className="w-4 h-4 text-indigo-450 flex-shrink-0 mt-0.5" />
+                            <Check className="w-4 h-4 text-zinc-500 flex-shrink-0 mt-0.5" />
                             <div>
                               <span className="font-bold text-zinc-300 block">Recommendation</span>
                               <span className="text-zinc-500">{rec.message}</span>
@@ -502,7 +496,7 @@ export default function ProjectDetailsPage() {
                         ))}
                         {(!archParsed?.errors?.length && !archParsed?.warnings?.length && !archParsed?.recommendations?.length) && (
                           <div className="flex items-start gap-2 text-[11px] leading-relaxed">
-                            <Check className="w-4 h-4 text-emerald-450 flex-shrink-0 mt-0.5" />
+                            <Check className="w-4 h-4 text-zinc-450 flex-shrink-0 mt-0.5" />
                             <div>
                               <span className="font-bold text-zinc-300 block">System architecture verified</span>
                               <span className="text-zinc-500">No issues found. Perfect compliance with CPM.</span>
@@ -514,15 +508,15 @@ export default function ProjectDetailsPage() {
 
                     {/* Auto-Repaired Findings */}
                     {archParsed?.resolved_findings?.length > 0 && (
-                      <Card className="bg-emerald-950/20 border-emerald-800/30 p-4 space-y-3 mt-4">
-                        <div className="flex items-center gap-2 border-b border-emerald-900/40 pb-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-xs text-emerald-300 font-bold">Auto-Repaired ({archParsed.resolved_findings.length})</span>
+                      <Card className="bg-zinc-800/10 border-zinc-700/20 p-4 space-y-3 mt-4">
+                        <div className="flex items-center gap-2 border-b border-zinc-700/30 pb-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-zinc-400" />
+                          <span className="text-xs text-zinc-200 font-bold">Auto-Repaired ({archParsed.resolved_findings.length})</span>
                         </div>
                         {archParsed.resolved_findings.map((item: string, idx: number) => (
                           <div key={`arch-resolved-${idx}`} className="flex items-start gap-2 text-[11px]">
-                            <Check className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                            <span className="text-emerald-400/80">{item}</span>
+                            <Check className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-zinc-400">{item}</span>
                           </div>
                         ))}
                       </Card>
@@ -573,7 +567,7 @@ export default function ProjectDetailsPage() {
                   <Card className="lg:col-span-2 bg-[#111113] border-zinc-800/60 p-4">
                     <div className="flex items-center justify-between border-b border-zinc-900 pb-2 mb-3">
                       <span className="text-xs font-bold text-zinc-250 uppercase font-mono tracking-wide">Tables & Relationships</span>
-                      <Badge className="bg-emerald-950/30 text-emerald-450 border border-emerald-900/30 text-[9.5px]">PostgreSQL Recommended</Badge>
+                      <Badge className="bg-zinc-800/10 text-zinc-350 border border-zinc-700/20 text-[9.5px]">PostgreSQL Recommended</Badge>
                     </div>
                     <div className="space-y-4">
                       <div>
@@ -581,7 +575,7 @@ export default function ProjectDetailsPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           {tables.map((tbl: string) => (
                             <div key={tbl} className="bg-zinc-950/40 border border-zinc-850 p-2.5 rounded-lg flex items-center gap-2">
-                              <Table className="w-3.5 h-3.5 text-emerald-400" />
+                              <Table className="w-3.5 h-3.5 text-zinc-400" />
                               <span className="text-xs font-mono font-bold text-zinc-300">{tbl}</span>
                             </div>
                           ))}
@@ -612,30 +606,30 @@ export default function ProjectDetailsPage() {
                     <div>
                       <div className="flex items-center justify-between border-b border-zinc-900 pb-2 mb-3">
                         <span className="text-xs text-zinc-300 font-bold">Database Validation</span>
-                        <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">Score: {dbParsed?.score ?? 95}</Badge>
+                        <Badge className="bg-zinc-800/10 text-zinc-300 border border-zinc-700/20 text-[10px] font-bold">Score: {dbParsed?.score ?? 95}</Badge>
                       </div>
                       <div className="space-y-3 mt-4">
                         {dbParsed?.errors && dbParsed.errors.map((err: any, idx: number) => (
                           <div key={`db-err-${idx}`} className="flex items-start gap-2 text-xs">
-                            <XCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
+                            <XCircle className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0 mt-0.5" />
                             <div>
-                              <span className="font-bold text-red-450 block">{err.message || "Database Error"}</span>
+                              <span className="font-bold text-zinc-200 block">{err.message || "Database Error"}</span>
                               {err.affected_item && <span className="text-zinc-500 text-[10px]">Table: {err.affected_item}</span>}
                             </div>
                           </div>
                         ))}
                         {dbParsed?.warnings && dbParsed.warnings.map((warn: any, idx: number) => (
                           <div key={`db-warn-${idx}`} className="flex items-start gap-2 text-xs">
-                            <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
+                            <AlertTriangle className="w-3.5 h-3.5 text-zinc-450 flex-shrink-0 mt-0.5" />
                             <div>
-                              <span className="font-bold text-amber-450 block">{warn.message || "Database Warning"}</span>
+                              <span className="font-bold text-zinc-300 block">{warn.message || "Database Warning"}</span>
                               {warn.affected_item && <span className="text-zinc-500 text-[10px]">Table: {warn.affected_item}</span>}
                             </div>
                           </div>
                         ))}
                         {dbParsed?.recommendations && dbParsed.recommendations.map((rec: any, idx: number) => (
                           <div key={`db-rec-${idx}`} className="flex items-start gap-2 text-xs">
-                            <Check className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0 mt-0.5" />
+                            <Check className="w-3.5 h-3.5 text-zinc-450 flex-shrink-0 mt-0.5" />
                             <div>
                               <span className="font-bold text-zinc-350 block">Recommendation</span>
                               <span className="text-zinc-500 text-[11px]">{rec.message}</span>
@@ -645,15 +639,15 @@ export default function ProjectDetailsPage() {
                         {(!dbParsed?.errors?.length && !dbParsed?.warnings?.length && !dbParsed?.recommendations?.length) && (
                           <>
                             <div className="flex items-center gap-2 text-xs">
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <Check className="w-3.5 h-3.5 text-zinc-450" />
                               <span className="text-zinc-400">Foreign key links indexed</span>
                             </div>
                             <div className="flex items-center gap-2 text-xs">
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <Check className="w-3.5 h-3.5 text-zinc-450" />
                               <span className="text-zinc-400">Timestamps standard validation</span>
                             </div>
                             <div className="flex items-center gap-2 text-xs">
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <Check className="w-3.5 h-3.5 text-zinc-450" />
                               <span className="text-zinc-400">Primary keys correctly annotated</span>
                             </div>
                           </>
@@ -664,7 +658,7 @@ export default function ProjectDetailsPage() {
                       <Button
                         size="sm"
                         onClick={() => apiDownloadFile(currentDesign.id, "schema.sql")}
-                        className="flex-1 bg-indigo-650 hover:bg-indigo-600 text-indigo-100 text-xs font-bold"
+                        className="flex-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs font-bold"
                       >
                         Download SQL
                       </Button>
@@ -789,7 +783,7 @@ export default function ProjectDetailsPage() {
                     {/* API validation actions */}
                     <Card className="bg-[#111113] border-zinc-800/60 p-4 flex flex-col md:flex-row items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <Badge className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10.5px] font-bold px-2 py-0.5">
+                        <Badge className="bg-zinc-800/10 text-zinc-300 border border-zinc-700/20 text-[10.5px] font-bold px-2 py-0.5">
                           API Validation Score: {apiParsed?.score ?? 91}
                         </Badge>
                         <span className="text-[11px] text-zinc-550">
@@ -802,7 +796,7 @@ export default function ProjectDetailsPage() {
                         <Button
                           size="sm"
                           onClick={() => setShowOpenApiModal(true)}
-                          className="flex-1 md:flex-initial bg-indigo-650 hover:bg-indigo-600 text-indigo-100 text-xs font-bold px-4"
+                          className="flex-1 md:flex-initial bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs font-bold px-4"
                         >
                           View OpenAPI
                         </Button>
@@ -810,7 +804,7 @@ export default function ProjectDetailsPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => apiDownloadFile(currentDesign.id, "openapi.yaml")}
-                          className="flex-1 md:flex-initial border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:text-zinc-200 text-xs font-bold px-4"
+                          className="flex-1 md:flex-initial border-zinc-800 bg-zinc-900/50 text-zinc-444 hover:text-zinc-200 text-xs font-bold px-4"
                         >
                           Download OpenAPI
                         </Button>
@@ -833,7 +827,7 @@ export default function ProjectDetailsPage() {
                     <Button
                       size="sm"
                       onClick={() => apiDownloadZip(currentDesign.id)}
-                      className="bg-indigo-650 hover:bg-indigo-600 text-indigo-100 text-xs font-bold gap-1.5"
+                      className="bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs font-bold gap-1.5"
                     >
                       <Download className="w-3.5 h-3.5" /> Download Full Bundle (.zip)
                     </Button>
@@ -911,7 +905,7 @@ export default function ProjectDetailsPage() {
                 onClick={() => {
                   apiDownloadFile(currentDesign.id, "openapi.yaml");
                 }}
-                className="bg-indigo-650 hover:bg-indigo-600 text-indigo-100 gap-1.5"
+                className="bg-zinc-100 hover:bg-zinc-200 text-zinc-950 gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" /> Download Spec
               </Button>

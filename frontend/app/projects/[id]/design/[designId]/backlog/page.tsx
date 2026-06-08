@@ -43,26 +43,26 @@ interface ImplementationBacklog { project_name: string; description: string; epi
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CAT_COLORS: Record<string, { bg: string; text: string; border: string; icon: React.ElementType }> = {
-  backend:        { bg: "bg-blue-500/10",    text: "text-blue-400",    border: "border-blue-500/20",    icon: Server },
-  frontend:       { bg: "bg-emerald-500/10", text: "text-emerald-400", border: "border-emerald-500/20", icon: LayoutDashboard },
-  database:       { bg: "bg-amber-500/10",   text: "text-amber-400",   border: "border-amber-500/20",   icon: Database },
-  infrastructure: { bg: "bg-rose-500/10",    text: "text-rose-400",    border: "border-rose-500/20",    icon: Server },
-  testing:        { bg: "bg-cyan-500/10",    text: "text-cyan-400",    border: "border-cyan-500/20",    icon: TestTube2 },
+  backend:        { bg: "bg-zinc-800/10",    text: "text-zinc-350",    border: "border-zinc-700/20",    icon: Server },
+  frontend:       { bg: "bg-zinc-800/10",    text: "text-zinc-350",    border: "border-zinc-700/20",    icon: LayoutDashboard },
+  database:       { bg: "bg-zinc-800/10",    text: "text-zinc-350",    border: "border-zinc-700/20",    icon: Database },
+  infrastructure: { bg: "bg-zinc-800/10",    text: "text-zinc-350",    border: "border-zinc-700/20",    icon: Server },
+  testing:        { bg: "bg-zinc-800/10",    text: "text-zinc-350",    border: "border-zinc-700/20",    icon: TestTube2 },
 };
 
 const COMP_COLORS: Record<string, string> = {
-  XS: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-  S:  "text-green-400  bg-green-500/10  border-green-500/20",
-  M:  "text-yellow-400 bg-yellow-500/10 border-yellow-500/20",
-  L:  "text-orange-400 bg-orange-500/10 border-orange-500/20",
-  XL: "text-red-400    bg-red-500/10    border-red-500/20",
+  XS: "text-zinc-400 bg-zinc-800/10 border-zinc-700/20",
+  S:  "text-zinc-400  bg-zinc-800/10  border-zinc-700/20",
+  M:  "text-zinc-400 bg-zinc-800/10 border-zinc-700/20",
+  L:  "text-zinc-400 bg-zinc-800/10 border-zinc-700/20",
+  XL: "text-zinc-400    bg-zinc-800/10    border-zinc-700/20",
 };
 
 const STATUS_ICONS = { todo: Circle, in_progress: Clock, done: CheckCircle2 };
 const STATUS_COLORS = {
   todo:        "text-zinc-500",
-  in_progress: "text-blue-400",
-  done:        "text-emerald-400",
+  in_progress: "text-zinc-300",
+  done:        "text-zinc-100",
 };
 
 // ── Context ───────────────────────────────────────────────────────────────────
