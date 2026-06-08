@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package archon;
+
+option go_package = "archon/gateway/generated/archonpb";
+
+// ArchonAI is the gRPC service exposing the Python AI workflow engine
+// to the Go gateway. All complex domain models (ProjectModel, ArchitectureModel,
+// etc.) are transmitted as JSON strings to avoid duplicating Pydantic schemas
+// in protobuf.
+service ArchonAI {
+  // StartWorkflow creates a new LangGraph thread and begins execution.
+  rpc StartWorkflow(StartWorkflowRequest) returns (StartWorkflowResponse);
+
+  // ResumeWorkflow resumes a paused workflow (after a HITL interrupt).
+  rpc ResumeWorkflow(ResumeWorkflowRequest) returns (ResumeWorkflowResponse);
+
+  // GetWorkflowState returns the full current state of a workflow thread.
+  rpc GetWorkflowState(GetWorkflowStateRequest) returns (GetWorkflowStateResponse);
+
+  // ExportArtifacts generates all design artifacts from workflow model JSON blobs
+  // and returns them as a ZIP archive plus individual file contents.
+  rpc ExportArtifacts(ExportArtifactsRequest) returns (ExportArtifactsResponse);
+
+  // GenerateBacklog generates an implementation backlog from all design artifacts.
+  rpc GenerateBacklog(GenerateBacklogRequest) returns (GenerateBacklogResponse);
+}
+
+// ─── StartWorkflow ───────────────────────────────────────────────────────────
+
+message StartWorkflowRequest {
+  string prd = 1;            // Product Requirements Document text
+  string provider = 2;       // "openai" or "gemini"
+  string model = 3;          // optional model override (e.g. "gpt-4o-mini")
+}
+
+message StartWorkflowResponse {
+  string thread_id = 1;      // unique LangGraph thread identifier
+  string status = 2;         // initial workflow status (e.g. "validating")
+}
+
+// ─── ResumeWorkflow ──────────────────────────────────────────────────────────
+
+message ResumeWorkflowRequest {
+  string thread_id = 1;      // thread to resume
+  string action = 2;         // action type: "clarification", "approve", "feedback", "intervention"
+  string payload = 3;        // JSON-encoded action payload
+}
+
+message ResumeWorkflowResponse {
+  string status = 1;         // updated workflow status after resume
+}
+
+// ─── GetWorkflowState ────────────────────────────────────────────────────────
+
+message GetWorkflowStateRequest {
+  string thread_id = 1;
+}
+
+message GetWorkflowStateResponse {
+  string thread_id = 1;
+  string status = 2;
+  string prd = 3;
+  string provider = 4;
+
+  // Domain model snapshots (JSON-serialized)
+  string project_model = 5;
+  string architecture_model = 6;
+  string database_model = 7;
+  string openapi_model = 8;
+  string requirements_doc = 9;
+
+  // HITL interrupt info
+  string interrupt_type = 10;   // e.g. "clarification", "cpm_approval", "architecture_approval", etc.
+  string interrupt_payload = 11; // JSON-encoded interrupt data (questions, model snapshot, etc.)
+
+  // Backlog
+  string backlog_model = 12;    // JSON-encoded ImplementationBacklog
+}
+
+// ─── ExportArtifacts ─────────────────────────────────────────────────────────
+
+message ExportArtifactsRequest {
+  // Raw JSON blobs of each model (same format stored in the database).
+  // Any field may be empty — exporters will produce placeholder content.
+  string project_model_json = 1;
+  string architecture_model_json = 2;
+  string database_model_json = 3;
+  string openapi_model_json = 4;
+}
+
+message ExportedFile {
+  string filename = 1;   // e.g. "architecture.mmd"
+  string content = 2;    // UTF-8 file content
+  int64 size_bytes = 3;  // content length in bytes
+}
+
+message ExportArtifactsResponse {
+  repeated ExportedFile files = 1;  // all generated artifact files
+  bytes zip_bytes = 2;              // raw ZIP archive bytes
+  int64 total_size_bytes = 3;
+  bool had_project_model = 4;
+  bool had_architecture_model = 5;
+  bool had_database_model = 6;
+  bool had_openapi_model = 7;
+}
+
+// ─── GenerateBacklog ─────────────────────────────────────────────────────────
+
+message GenerateBacklogRequest {
+  string thread_id = 1;            // design thread to generate backlog for
+  string feedback = 2;             // optional revision feedback
+}
+
+message GenerateBacklogResponse {
+  string backlog_model = 1;        // JSON-encoded ImplementationBacklog
+}

@@ -1,0 +1,63 @@
+# Next.js / Node.js
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/*.tsbuildinfo
+**/next-env.d.ts
+**/.vercel
+
+# Go (gateway)
+**/gateway/bin/
+**/gateway/out/
+**/*.exe
+**/*.exe~
+**/*.dll
+**/*.so
+**/*.dylib
+*.test
+*.prof
+coverage.out
+coverage.html
+*.cover
+
+# Python (ai-service)
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.pytest_cache/
+**/.venv/
+**/venv/
+**/env/
+**/.env
+*.egg-info/
+dist/
+build/
+.ipynb_checkpoints/
+
+# Local databases & dumps
+*.db
+*.sqlite
+*.sqlite3
+*.sql.gz
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# Misc
+.DS_Store
+Thumbs.db
+*.pem
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
