@@ -211,3 +211,102 @@ func (c *Client) GenerateBacklog(ctx context.Context, threadID, feedback string)
 		BacklogModel: resp.BacklogModel,
 	}, nil
 }
+
+// ─── GitHub Issue Agents ──────────────────────────────────────────────────────
+
+// TaskMessageInput is a single thread message sent to the AI issue agents.
+type TaskMessageInput struct {
+	Role    string
+	Content string
+	Sender  string
+}
+
+// IssueAnswerInput is a Q&A pair sent to FinalizeIssue.
+type IssueAnswerInput struct {
+	Question string
+	Answer   string
+}
+
+// GenerateIssueDraftResult holds the clarifying questions from the AI.
+type GenerateIssueDraftResult struct {
+	Questions []string
+}
+
+// FinalizeIssueResult holds the generated issue title and body.
+type FinalizeIssueResult struct {
+	Title string
+	Body  string
+}
+
+// GenerateIssueDraft calls the AI service to produce clarifying questions for a task.
+func (c *Client) GenerateIssueDraft(
+	ctx context.Context,
+	taskTitle, epicName, storyName, projectName, workspace, description string,
+	messages []TaskMessageInput,
+) (*GenerateIssueDraftResult, error) {
+	pbMessages := make([]*pb.TaskMessageProto, 0, len(messages))
+	for _, m := range messages {
+		pbMessages = append(pbMessages, &pb.TaskMessageProto{
+			Role:    m.Role,
+			Content: m.Content,
+			Sender:  m.Sender,
+		})
+	}
+
+	resp, err := c.stub.GenerateIssueDraft(ctx, &pb.GenerateIssueDraftRequest{
+		TaskTitle:   taskTitle,
+		EpicName:    epicName,
+		StoryName:   storyName,
+		ProjectName: projectName,
+		Workspace:   workspace,
+		Description: description,
+		Messages:    pbMessages,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("GenerateIssueDraft RPC failed: %w", err)
+	}
+
+	return &GenerateIssueDraftResult{Questions: resp.Questions}, nil
+}
+
+// FinalizeIssue calls the AI service to generate the final issue title + body.
+func (c *Client) FinalizeIssue(
+	ctx context.Context,
+	taskTitle, epicName, storyName, projectName, workspace, description string,
+	messages []TaskMessageInput,
+	answers []IssueAnswerInput,
+) (*FinalizeIssueResult, error) {
+	pbMessages := make([]*pb.TaskMessageProto, 0, len(messages))
+	for _, m := range messages {
+		pbMessages = append(pbMessages, &pb.TaskMessageProto{
+			Role:    m.Role,
+			Content: m.Content,
+			Sender:  m.Sender,
+		})
+	}
+
+	pbAnswers := make([]*pb.AnswerProto, 0, len(answers))
+	for _, a := range answers {
+		pbAnswers = append(pbAnswers, &pb.AnswerProto{
+			Question: a.Question,
+			Answer:   a.Answer,
+		})
+	}
+
+	resp, err := c.stub.FinalizeIssue(ctx, &pb.FinalizeIssueRequest{
+		TaskTitle:   taskTitle,
+		EpicName:    epicName,
+		StoryName:   storyName,
+		ProjectName: projectName,
+		Workspace:   workspace,
+		Description: description,
+		Messages:    pbMessages,
+		Answers:     pbAnswers,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("FinalizeIssue RPC failed: %w", err)
+	}
+
+	return &FinalizeIssueResult{Title: resp.Title, Body: resp.Body}, nil
+}
+

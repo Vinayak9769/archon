@@ -48,7 +48,7 @@ export default function WorkspacesPage() {
   }
 
   return (
-    <div className="p-6 max-w-[1000px] mx-auto space-y-6 min-h-screen bg-[#0a0a0b]">
+    <div className="p-6 space-y-6 min-h-screen bg-[#0a0a0b]">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-zinc-800/60 pb-6">
         <div className="flex items-center gap-3">

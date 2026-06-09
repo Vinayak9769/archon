@@ -101,7 +101,7 @@ export default function WorkspaceDetailPage() {
   );
 
   if (error || !workspace) return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6">
       <Card className="bg-zinc-800/10 border-zinc-700/20 p-5 flex items-center gap-3">
         <AlertCircle className="w-4 h-4 text-zinc-400" />
         <p className="text-xs text-zinc-400">{error || "Workspace not found"}</p>
@@ -110,7 +110,7 @@ export default function WorkspaceDetailPage() {
   );
 
   return (
-    <div className="p-6 max-w-[1100px] mx-auto space-y-6 min-h-screen bg-[#0a0a0b]">
+    <div className="p-6 space-y-6 min-h-screen bg-[#0a0a0b]">
       {/* Nav */}
       <Link href="/workspaces" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-350 transition-colors">
         <ArrowLeft className="w-3.5 h-3.5" /> All Workspaces

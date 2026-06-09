@@ -19,11 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ArchonAI_StartWorkflow_FullMethodName    = "/archon.ArchonAI/StartWorkflow"
-	ArchonAI_ResumeWorkflow_FullMethodName   = "/archon.ArchonAI/ResumeWorkflow"
-	ArchonAI_GetWorkflowState_FullMethodName = "/archon.ArchonAI/GetWorkflowState"
-	ArchonAI_ExportArtifacts_FullMethodName  = "/archon.ArchonAI/ExportArtifacts"
-	ArchonAI_GenerateBacklog_FullMethodName  = "/archon.ArchonAI/GenerateBacklog"
+	ArchonAI_StartWorkflow_FullMethodName      = "/archon.ArchonAI/StartWorkflow"
+	ArchonAI_ResumeWorkflow_FullMethodName     = "/archon.ArchonAI/ResumeWorkflow"
+	ArchonAI_GetWorkflowState_FullMethodName   = "/archon.ArchonAI/GetWorkflowState"
+	ArchonAI_ExportArtifacts_FullMethodName    = "/archon.ArchonAI/ExportArtifacts"
+	ArchonAI_GenerateBacklog_FullMethodName    = "/archon.ArchonAI/GenerateBacklog"
+	ArchonAI_GenerateIssueDraft_FullMethodName = "/archon.ArchonAI/GenerateIssueDraft"
+	ArchonAI_FinalizeIssue_FullMethodName      = "/archon.ArchonAI/FinalizeIssue"
 )
 
 // ArchonAIClient is the client API for ArchonAI service.
@@ -46,6 +48,10 @@ type ArchonAIClient interface {
 	ExportArtifacts(ctx context.Context, in *ExportArtifactsRequest, opts ...grpc.CallOption) (*ExportArtifactsResponse, error)
 	// GenerateBacklog generates an implementation backlog from all design artifacts.
 	GenerateBacklog(ctx context.Context, in *GenerateBacklogRequest, opts ...grpc.CallOption) (*GenerateBacklogResponse, error)
+	// GenerateIssueDraft (Step 1): analyses task context and returns clarifying questions.
+	GenerateIssueDraft(ctx context.Context, in *GenerateIssueDraftRequest, opts ...grpc.CallOption) (*GenerateIssueDraftResponse, error)
+	// FinalizeIssue (Step 2): generates the final GitHub issue title + body using answers.
+	FinalizeIssue(ctx context.Context, in *FinalizeIssueRequest, opts ...grpc.CallOption) (*FinalizeIssueResponse, error)
 }
 
 type archonAIClient struct {
@@ -106,6 +112,26 @@ func (c *archonAIClient) GenerateBacklog(ctx context.Context, in *GenerateBacklo
 	return out, nil
 }
 
+func (c *archonAIClient) GenerateIssueDraft(ctx context.Context, in *GenerateIssueDraftRequest, opts ...grpc.CallOption) (*GenerateIssueDraftResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GenerateIssueDraftResponse)
+	err := c.cc.Invoke(ctx, ArchonAI_GenerateIssueDraft_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *archonAIClient) FinalizeIssue(ctx context.Context, in *FinalizeIssueRequest, opts ...grpc.CallOption) (*FinalizeIssueResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinalizeIssueResponse)
+	err := c.cc.Invoke(ctx, ArchonAI_FinalizeIssue_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ArchonAIServer is the server API for ArchonAI service.
 // All implementations must embed UnimplementedArchonAIServer
 // for forward compatibility.
@@ -126,6 +152,10 @@ type ArchonAIServer interface {
 	ExportArtifacts(context.Context, *ExportArtifactsRequest) (*ExportArtifactsResponse, error)
 	// GenerateBacklog generates an implementation backlog from all design artifacts.
 	GenerateBacklog(context.Context, *GenerateBacklogRequest) (*GenerateBacklogResponse, error)
+	// GenerateIssueDraft (Step 1): analyses task context and returns clarifying questions.
+	GenerateIssueDraft(context.Context, *GenerateIssueDraftRequest) (*GenerateIssueDraftResponse, error)
+	// FinalizeIssue (Step 2): generates the final GitHub issue title + body using answers.
+	FinalizeIssue(context.Context, *FinalizeIssueRequest) (*FinalizeIssueResponse, error)
 	mustEmbedUnimplementedArchonAIServer()
 }
 
@@ -150,6 +180,12 @@ func (UnimplementedArchonAIServer) ExportArtifacts(context.Context, *ExportArtif
 }
 func (UnimplementedArchonAIServer) GenerateBacklog(context.Context, *GenerateBacklogRequest) (*GenerateBacklogResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateBacklog not implemented")
+}
+func (UnimplementedArchonAIServer) GenerateIssueDraft(context.Context, *GenerateIssueDraftRequest) (*GenerateIssueDraftResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateIssueDraft not implemented")
+}
+func (UnimplementedArchonAIServer) FinalizeIssue(context.Context, *FinalizeIssueRequest) (*FinalizeIssueResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FinalizeIssue not implemented")
 }
 func (UnimplementedArchonAIServer) mustEmbedUnimplementedArchonAIServer() {}
 func (UnimplementedArchonAIServer) testEmbeddedByValue()                  {}
@@ -262,6 +298,42 @@ func _ArchonAI_GenerateBacklog_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ArchonAI_GenerateIssueDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateIssueDraftRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ArchonAIServer).GenerateIssueDraft(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ArchonAI_GenerateIssueDraft_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ArchonAIServer).GenerateIssueDraft(ctx, req.(*GenerateIssueDraftRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ArchonAI_FinalizeIssue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FinalizeIssueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ArchonAIServer).FinalizeIssue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ArchonAI_FinalizeIssue_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ArchonAIServer).FinalizeIssue(ctx, req.(*FinalizeIssueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ArchonAI_ServiceDesc is the grpc.ServiceDesc for ArchonAI service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -288,6 +360,14 @@ var ArchonAI_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GenerateBacklog",
 			Handler:    _ArchonAI_GenerateBacklog_Handler,
+		},
+		{
+			MethodName: "GenerateIssueDraft",
+			Handler:    _ArchonAI_GenerateIssueDraft_Handler,
+		},
+		{
+			MethodName: "FinalizeIssue",
+			Handler:    _ArchonAI_FinalizeIssue_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

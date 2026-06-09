@@ -143,3 +143,37 @@ func GenerateAPIKey() string {
 	_, _ = rand.Read(bytes)
 	return hex.EncodeToString(bytes)
 }
+
+func (s *AuthService) SaveGithubOAuthToken(ctx context.Context, userID, githubUser, accessToken string) error {
+	_, err := s.postgres.DB.ExecContext(ctx, `
+		INSERT INTO user_github_oauth (user_id, github_user, access_token, connected_at)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (user_id) DO UPDATE
+		SET github_user = EXCLUDED.github_user,
+		    access_token = EXCLUDED.access_token,
+		    connected_at = EXCLUDED.connected_at
+	`, userID, githubUser, accessToken, time.Now())
+	return err
+}
+
+func (s *AuthService) GetGithubOAuthToken(ctx context.Context, userID string) (string, string, error) {
+	var githubUser, accessToken string
+	err := s.postgres.DB.QueryRowContext(ctx, `
+		SELECT github_user, access_token
+		FROM user_github_oauth
+		WHERE user_id = $1
+	`, userID).Scan(&githubUser, &accessToken)
+	if err != nil {
+		return "", "", err
+	}
+	return githubUser, accessToken, nil
+}
+
+func (s *AuthService) DeleteGithubOAuthToken(ctx context.Context, userID string) error {
+	_, err := s.postgres.DB.ExecContext(ctx, `
+		DELETE FROM user_github_oauth
+		WHERE user_id = $1
+	`, userID)
+	return err
+}
+

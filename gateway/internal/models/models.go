@@ -70,6 +70,7 @@ type TaskAssignment struct {
 	AssigneeEmail string    `json:"assignee_email"`
 	AssignedBy    string    `json:"assigned_by"`
 	Status        string    `json:"status"` // "todo" | "in_progress" | "done"
+	GithubIssueURL string    `json:"github_issue_url,omitempty"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 	// Enrichment for My Tasks view
@@ -77,3 +78,14 @@ type TaskAssignment struct {
 	ProjectName   string `json:"project_name,omitempty"`
 	WorkspaceName string `json:"workspace_name,omitempty"`
 }
+
+type TaskMessage struct {
+	ID         string    `json:"id"`
+	TaskID     string    `json:"task_id"`
+	SenderID   *string   `json:"sender_id,omitempty"`
+	SenderName string    `json:"sender_name"`
+	Role       string    `json:"role"` // "agent" | "user" | "member"
+	Content    string    `json:"content"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+

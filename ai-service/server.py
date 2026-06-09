@@ -9,11 +9,16 @@ import asyncio
 import json
 import logging
 import sys
+import os
+
+# Ensure the generated proto directory is in python path so generated imports find each other
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
 
 import grpc
 from grpc import aio
 
-from generated import archon_pb2, archon_pb2_grpc
+import archon_pb2
+import archon_pb2_grpc
 from graph import app
 from state import WorkflowStatus
 from langgraph.types import Command
@@ -312,6 +317,74 @@ class ArchonAIServicer(archon_pb2_grpc.ArchonAIServicer):
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(str(e))
             return archon_pb2.GenerateBacklogResponse()
+
+    def GenerateIssueDraft(self, request, context):
+        """Step 1: Analyse task context and return clarifying questions."""
+        from agents import generate_issue_questions_agent
+        from llm import LLMClient
+
+        logger.info(f"GenerateIssueDraft: task={request.task_title!r}")
+
+        messages = [
+            {"role": m.role, "content": m.content, "sender": m.sender}
+            for m in request.messages
+        ]
+
+        try:
+            client = LLMClient(provider="gemini")
+            result = generate_issue_questions_agent(
+                task_title=request.task_title,
+                epic_name=request.epic_name,
+                story_name=request.story_name,
+                project_name=request.project_name,
+                workspace=request.workspace,
+                description=request.description,
+                messages=messages,
+                client=client,
+            )
+            return archon_pb2.GenerateIssueDraftResponse(questions=result.questions)
+        except Exception as e:
+            logger.error(f"GenerateIssueDraft failed: {e}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(e))
+            return archon_pb2.GenerateIssueDraftResponse()
+
+    def FinalizeIssue(self, request, context):
+        """Step 2: Generate the final GitHub issue title + body."""
+        from agents import finalize_issue_agent
+        from llm import LLMClient
+
+        logger.info(f"FinalizeIssue: task={request.task_title!r}")
+
+        messages = [
+            {"role": m.role, "content": m.content, "sender": m.sender}
+            for m in request.messages
+        ]
+        answers = [
+            {"question": a.question, "answer": a.answer}
+            for a in request.answers
+        ]
+
+        try:
+            client = LLMClient(provider="gemini")
+            result = finalize_issue_agent(
+                task_title=request.task_title,
+                epic_name=request.epic_name,
+                story_name=request.story_name,
+                project_name=request.project_name,
+                workspace=request.workspace,
+                description=request.description,
+                messages=messages,
+                answers=answers,
+                client=client,
+            )
+            return archon_pb2.FinalizeIssueResponse(title=result.title, body=result.body)
+        except Exception as e:
+            logger.error(f"FinalizeIssue failed: {e}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(e))
+            return archon_pb2.FinalizeIssueResponse()
+
 
 
 def serve():

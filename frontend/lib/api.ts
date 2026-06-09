@@ -22,8 +22,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const body = await res.json().catch(() => ({}));
     throw new Error(body?.error ?? `HTTP ${res.status}`);
   }
+  // 204 No Content (and similar) have no body — skip JSON parsing
+  if (res.status === 204 || res.headers.get("content-length") === "0") {
+    return undefined as unknown as T;
+  }
   return res.json() as Promise<T>;
 }
+
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -69,6 +74,10 @@ export async function apiCreateProject(name: string): Promise<Project> {
 
 export async function apiGetProject(projectId: string): Promise<Project> {
   return request<Project>(`/api/v1/projects/${projectId}`);
+}
+
+export async function apiDeleteProject(projectId: string): Promise<void> {
+  return request<void>(`/api/v1/projects/${projectId}`, { method: "DELETE" });
 }
 
 // ── Designs ──────────────────────────────────────────────────────────────────
@@ -235,6 +244,7 @@ export interface TaskAssignment {
   assignee_email: string;
   assigned_by: string;
   status: "todo" | "in_progress" | "done";
+  github_issue_url?: string;
   created_at: string;
   updated_at: string;
   // Enrichment fields (My Tasks view)
@@ -288,3 +298,120 @@ export async function apiUpdateTaskStatus(
 export async function apiListMyTasks(): Promise<TaskAssignment[]> {
   return request<TaskAssignment[]>("/api/v1/me/tasks");
 }
+
+export interface TaskMessage {
+  id: string;
+  task_id: string;
+  sender_id?: string;
+  sender_name: string;
+  role: "agent" | "user" | "member";
+  content: string;
+  created_at: string;
+}
+
+export interface GithubAppSettings {
+  installed: boolean;
+  installation_type: "all" | "select";
+  repositories: string;
+}
+
+export async function apiGetTask(id: string): Promise<TaskAssignment> {
+  return request<TaskAssignment>(`/api/v1/tasks/${id}`);
+}
+
+export async function apiListTaskMessages(taskId: string): Promise<TaskMessage[]> {
+  return request<TaskMessage[]>(`/api/v1/tasks/${taskId}/messages`);
+}
+
+export async function apiCreateTaskMessage(taskId: string, content: string): Promise<TaskMessage> {
+  return request<TaskMessage>(`/api/v1/tasks/${taskId}/messages`, {
+    method: "POST",
+    body: JSON.stringify({ content }),
+  });
+}
+
+export async function apiDraftGithubIssueForTask(
+  taskId: string
+): Promise<{ questions: string[] }> {
+  return request<{ questions: string[] }>(`/api/v1/tasks/${taskId}/github/issue/draft`, {
+    method: "POST",
+  });
+}
+
+export async function apiCreateGithubIssueForTask(
+  taskId: string,
+  answers: { question: string; answer: string }[]
+): Promise<TaskAssignment> {
+  return request<TaskAssignment>(`/api/v1/tasks/${taskId}/github/issue`, {
+    method: "POST",
+    body: JSON.stringify({ answers }),
+  });
+}
+
+export async function apiUnlinkGithubIssueForTask(taskId: string): Promise<void> {
+  return request<void>(`/api/v1/tasks/${taskId}/github/issue`, {
+    method: "DELETE",
+  });
+}
+
+export async function apiGetGithubAppSettings(): Promise<GithubAppSettings> {
+  return request<GithubAppSettings>("/api/v1/settings/github-app");
+}
+
+export async function apiUpdateGithubAppSettings(
+  installed: boolean,
+  installationType: "all" | "select",
+  repositories: string
+): Promise<void> {
+  return request<void>("/api/v1/settings/github-app", {
+    method: "POST",
+    body: JSON.stringify({ installed, installation_type: installationType, repositories }),
+  });
+}
+
+export async function apiGetGithubAppInstallURL(): Promise<{ url: string }> {
+  return request<{ url: string }>("/api/v1/settings/github-app/install-url");
+}
+
+export interface GithubAuthStatus {
+  connected: boolean;
+  username?: string;
+}
+
+export async function apiGetGithubAuthURL(): Promise<{ url: string }> {
+  return request<{ url: string }>("/api/v1/auth/github/url");
+}
+
+export async function apiGetGithubAuthStatus(): Promise<GithubAuthStatus> {
+  return request<GithubAuthStatus>("/api/v1/auth/github/status");
+}
+
+export async function apiDisconnectGithubAuth(): Promise<void> {
+  return request<void>("/api/v1/auth/github", {
+    method: "DELETE",
+  });
+}
+
+export interface GithubRepoItem {
+  name: string;
+  full_name: string;
+  html_url: string;
+}
+
+export async function apiGetGithubRepos(): Promise<GithubRepoItem[]> {
+  return request<GithubRepoItem[]>("/api/v1/auth/github/repos");
+}
+
+export async function apiUpdateProject(
+  projectId: string,
+  repoUrl: string,
+  branch: string
+): Promise<Project> {
+  return request<Project>(`/api/v1/projects/${projectId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ repo_url: repoUrl, branch }),
+  });
+}
+
+
+

@@ -24,6 +24,12 @@ service ArchonAI {
 
   // GenerateBacklog generates an implementation backlog from all design artifacts.
   rpc GenerateBacklog(GenerateBacklogRequest) returns (GenerateBacklogResponse);
+
+  // GenerateIssueDraft (Step 1): analyses task context and returns clarifying questions.
+  rpc GenerateIssueDraft(GenerateIssueDraftRequest) returns (GenerateIssueDraftResponse);
+
+  // FinalizeIssue (Step 2): generates the final GitHub issue title + body using answers.
+  rpc FinalizeIssue(FinalizeIssueRequest) returns (FinalizeIssueResponse);
 }
 
 // ─── StartWorkflow ───────────────────────────────────────────────────────────
@@ -115,3 +121,49 @@ message GenerateBacklogRequest {
 message GenerateBacklogResponse {
   string backlog_model = 1;        // JSON-encoded ImplementationBacklog
 }
+
+// ─── GenerateIssueDraft ───────────────────────────────────────────────────────
+
+message TaskMessageProto {
+  string role    = 1;   // "user" | "agent" | "system"
+  string content = 2;
+  string sender  = 3;
+}
+
+message GenerateIssueDraftRequest {
+  string task_title    = 1;
+  string epic_name     = 2;
+  string story_name    = 3;
+  string project_name  = 4;
+  string workspace     = 5;
+  string description   = 6;   // task description if any
+  repeated TaskMessageProto messages = 7;
+}
+
+message GenerateIssueDraftResponse {
+  repeated string questions = 1;   // clarifying questions for the user
+}
+
+// ─── FinalizeIssue ────────────────────────────────────────────────────────────
+
+message AnswerProto {
+  string question = 1;
+  string answer   = 2;
+}
+
+message FinalizeIssueRequest {
+  string task_title    = 1;
+  string epic_name     = 2;
+  string story_name    = 3;
+  string project_name  = 4;
+  string workspace     = 5;
+  string description   = 6;
+  repeated TaskMessageProto messages = 7;
+  repeated AnswerProto answers       = 8;
+}
+
+message FinalizeIssueResponse {
+  string title = 1;
+  string body  = 2;
+}
+

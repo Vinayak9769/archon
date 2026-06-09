@@ -197,7 +197,7 @@ export default function BacklogPage() {
   );
 
   return (
-    <div className="p-6 max-w-[1200px] mx-auto space-y-6 min-h-screen bg-[#0a0a0b]">
+    <div className="p-6 space-y-6 min-h-screen bg-[#0a0a0b]">
       {/* Nav */}
       <Link href={`/projects/${projectId}`}
         className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-350 transition-colors">
@@ -306,16 +306,16 @@ function EpicCard({ epic, epicIndex, defaultOpen, ctx }: { epic: Epic; epicIndex
   return (
     <div className="rounded-xl border border-zinc-800/60 bg-[#0e0e10] overflow-hidden">
       <button onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-3 py-3.5 px-4 hover:bg-zinc-900/20 transition-colors text-left">
+        className="w-full flex items-center gap-3 py-4 px-5 hover:bg-zinc-900/20 transition-colors text-left">
         <ChevronDown className={cn("w-4 h-4 text-zinc-500 flex-shrink-0 transition-transform", open && "rotate-180")} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold text-zinc-200">{epic.name}</span>
-            <Badge className="bg-zinc-900/40 text-zinc-400 border-zinc-800/40 text-[9px]">
+            <span className="text-sm font-extrabold text-zinc-200">{epic.name}</span>
+            <Badge className="bg-zinc-900/40 text-zinc-400 border-zinc-800/40 text-[11px] px-2">
               {epic.stories?.length || 0} stories · {totalTasks} tasks
             </Badge>
           </div>
-          <p className="text-[10px] text-zinc-600 mt-0.5 truncate">{epic.description}</p>
+          <p className="text-xs text-zinc-500 mt-1 truncate">{epic.description}</p>
         </div>
       </button>
       {open && (
@@ -335,19 +335,19 @@ function StoryRow({ story, epicName, ctx }: { story: Story; epicName: string; ct
   return (
     <div className="bg-[#0c0c0e]">
       <button onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-3 py-2.5 px-5 hover:bg-zinc-900/30 transition-colors text-left">
+        className="w-full flex items-center gap-3 py-3 px-6 hover:bg-zinc-900/30 transition-colors text-left">
         <ChevronDown className={cn("w-3.5 h-3.5 text-zinc-600 flex-shrink-0 transition-transform", open && "rotate-180")} />
         <div className="flex-1 min-w-0">
-          <span className="text-[11px] font-bold text-zinc-300">{story.name}</span>
-          {!open && <p className="text-[10px] text-zinc-600 mt-0.5 truncate">{story.description}</p>}
+          <span className="text-sm font-bold text-zinc-300">{story.name}</span>
+          {!open && <p className="text-xs text-zinc-600 mt-0.5 truncate">{story.description}</p>}
         </div>
-        <Badge className="bg-zinc-900 text-zinc-500 border-zinc-800 text-[8px] flex-shrink-0">
+        <Badge className="bg-zinc-900 text-zinc-500 border-zinc-800 text-[10px] flex-shrink-0">
           {story.tasks?.length || 0} tasks
         </Badge>
       </button>
       {open && (
-        <div className="pb-2 px-5 space-y-1.5">
-          <p className="text-[10px] text-zinc-600 mb-3">{story.description}</p>
+        <div className="pb-3 px-6 space-y-2">
+          <p className="text-xs text-zinc-500 mb-4">{story.description}</p>
           {story.tasks?.map((task, ti) => (
             <TaskRow key={`task-${ti}`} task={task} epicName={epicName} storyName={story.name} ctx={ctx} />
           ))}
@@ -382,60 +382,60 @@ function TaskRow({ task, epicName, storyName, ctx }: {
   }
 
   return (
-    <div className="flex items-start gap-2.5 py-2.5 px-3 rounded-lg bg-zinc-950/60 border border-zinc-900/60 hover:border-zinc-800/60 transition-colors">
-      <CatIcon className={cn("w-3.5 h-3.5 flex-shrink-0 mt-0.5", cat.text)} />
+    <div className="flex items-start gap-3 py-3 px-4 rounded-lg bg-zinc-950/60 border border-zinc-900/60 hover:border-zinc-800/60 transition-colors">
+      <CatIcon className={cn("w-4 h-4 flex-shrink-0 mt-0.5", cat.text)} />
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[10px] font-semibold text-zinc-200">{task.title}</span>
-          <Badge className={cn("text-[8px] font-bold border", cat.bg, cat.text, cat.border)}>{task.category}</Badge>
-          <Badge className={cn("text-[8px] font-mono font-bold border", COMP_COLORS[task.estimated_complexity])}>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-semibold text-zinc-200">{task.title}</span>
+          <Badge className={cn("text-[10px] font-bold border px-1.5", cat.bg, cat.text, cat.border)}>{task.category}</Badge>
+          <Badge className={cn("text-[10px] font-mono font-bold border px-1.5", COMP_COLORS[task.estimated_complexity])}>
             {task.estimated_complexity}
           </Badge>
         </div>
-        <p className="text-[10px] text-zinc-600 mt-0.5">{task.description}</p>
+        <p className="text-xs text-zinc-500 mt-1 leading-relaxed">{task.description}</p>
 
         {/* Dependencies */}
         {task.dependencies?.length > 0 && (
-          <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-            <span className="text-[8px] text-zinc-700 font-semibold">Deps:</span>
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            <span className="text-[10px] text-zinc-600 font-semibold">Deps:</span>
             {task.dependencies.map((dep, di) => (
-              <span key={di} className="text-[8px] text-zinc-600 bg-zinc-900 border border-zinc-800/60 rounded px-1.5 py-0.5 font-mono">{dep}</span>
+              <span key={di} className="text-[10px] text-zinc-500 bg-zinc-900 border border-zinc-800/60 rounded px-2 py-0.5 font-mono">{dep}</span>
             ))}
           </div>
         )}
 
         {/* Assignment row */}
-        <div className="flex items-center gap-2 mt-2 flex-wrap">
+        <div className="flex items-center gap-2 mt-2.5 flex-wrap">
           {assignment ? (
             <div className="flex items-center gap-1.5">
               {StatusIcon && (
-                <StatusIcon className={cn("w-3 h-3", STATUS_COLORS[assignment.status])} />
+                <StatusIcon className={cn("w-3.5 h-3.5", STATUS_COLORS[assignment.status])} />
               )}
-              <span className="text-[9px] font-semibold text-zinc-400">{assignment.assignee_email}</span>
+              <span className="text-xs font-semibold text-zinc-400">{assignment.assignee_email}</span>
               {ctx.isOwner && (
                 <button onClick={doUnassign} disabled={assigning}
                   className="text-zinc-700 hover:text-red-400 transition-colors ml-0.5">
-                  {assigning ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
+                  {assigning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
                 </button>
               )}
             </div>
           ) : ctx.isOwner && ctx.members.length > 0 ? (
             <div className="relative">
               <button onClick={() => setShowAssign(!showAssign)}
-                className="inline-flex items-center gap-1 text-[9px] text-zinc-600 hover:text-zinc-400 transition-colors border border-zinc-800/60 rounded px-2 py-0.5">
-                <UserPlus className="w-3 h-3" /> Assign
+                className="inline-flex items-center gap-1 text-xs text-zinc-600 hover:text-zinc-400 transition-colors border border-zinc-800/60 rounded px-2 py-0.5">
+                <UserPlus className="w-3.5 h-3.5" /> Assign
               </button>
               {showAssign && (
-                <div className="absolute left-0 top-6 z-20 bg-[#1a1a1c] border border-zinc-800 rounded-lg shadow-xl min-w-[180px] py-1 overflow-hidden">
+                <div className="absolute left-0 top-7 z-20 bg-[#1a1a1c] border border-zinc-800 rounded-lg shadow-xl min-w-[180px] py-1 overflow-hidden">
                   {ctx.members.map((m) => (
                     <button key={m.user_id}
                       onClick={() => doAssign(m.user_id)}
-                      className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-zinc-800/60 transition-colors text-left"
+                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-800/60 transition-colors text-left"
                     >
-                      <div className="w-5 h-5 rounded-full bg-zinc-900/40 border border-zinc-800/40 flex items-center justify-center flex-shrink-0">
-                        <span className="text-[8px] font-bold text-zinc-400">{m.email[0].toUpperCase()}</span>
+                      <div className="w-6 h-6 rounded-full bg-zinc-900/40 border border-zinc-800/40 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-zinc-400">{m.email[0].toUpperCase()}</span>
                       </div>
-                      <span className="text-[10px] text-zinc-300 truncate">{m.email}</span>
+                      <span className="text-xs text-zinc-300 truncate">{m.email}</span>
                     </button>
                   ))}
                 </div>

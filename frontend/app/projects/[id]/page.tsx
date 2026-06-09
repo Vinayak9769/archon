@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { apiGetProject, apiListDesigns, apiDownloadZip, apiDownloadFile, type Project, type Design } from "@/lib/api";
+import { apiGetProject, apiListDesigns, apiDownloadZip, apiDownloadFile, apiUpdateProject, apiGetGithubRepos, type Project, type Design, type GithubRepoItem } from "@/lib/api";
 import dynamic from "next/dynamic";
 
 const MermaidVisualizer = dynamic(() => import("./design/[designId]/MermaidVisualizer"), { ssr: false });
@@ -84,6 +84,54 @@ export default function ProjectDetailsPage() {
   const [selectedDesignId, setSelectedDesignId] = useState<string>("");
   const [showOpenApiModal, setShowOpenApiModal] = useState(false);
   const [activeApiEndpointIdx, setActiveApiEndpointIdx] = useState(0);
+
+  // Link Repository Modal States
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [repos, setRepos] = useState<GithubRepoItem[]>([]);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+  const [repoSearch, setRepoSearch] = useState("");
+  const [selectedRepoUrl, setSelectedRepoUrl] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("main");
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [updatingProject, setUpdatingProject] = useState(false);
+
+  const handleOpenLinkModal = async () => {
+    setShowLinkModal(true);
+    setLoadingRepos(true);
+    setLinkError(null);
+    try {
+      const list = await apiGetGithubRepos();
+      setRepos(list);
+      // Auto-select current project repo if it matches any in the list
+      if (project?.repo_url) {
+        setSelectedRepoUrl(project.repo_url);
+      } else if (list.length > 0) {
+        setSelectedRepoUrl(list[0].html_url);
+      }
+      if (project?.branch) {
+        setSelectedBranch(project.branch);
+      }
+    } catch (err: any) {
+      setLinkError(err.message || "Failed to load GitHub repositories. Make sure your GitHub account is connected in Settings.");
+    } finally {
+      setLoadingRepos(false);
+    }
+  };
+
+  const handleLinkRepo = async () => {
+    if (!id || !selectedRepoUrl) return;
+    setUpdatingProject(true);
+    setLinkError(null);
+    try {
+      const updated = await apiUpdateProject(id as string, selectedRepoUrl, selectedBranch);
+      setProject(updated);
+      setShowLinkModal(false);
+    } catch (err: any) {
+      setLinkError(err.message || "Failed to link repository.");
+    } finally {
+      setUpdatingProject(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -199,7 +247,7 @@ export default function ProjectDetailsPage() {
   }
 
   return (
-    <div className="p-6 max-w-[1400px] mx-auto space-y-6">
+    <div className="p-6 space-y-6">
       {/* Navigation & Back Link */}
       <div className="flex items-center justify-between">
         <Link href="/projects" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-350 transition-colors">
@@ -216,7 +264,15 @@ export default function ProjectDetailsPage() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-zinc-100">{project.name}</h1>
-              <p className="text-[10px] text-zinc-550 font-mono tracking-tight">{project.repo_url} ({project.branch})</p>
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] text-zinc-550 font-mono tracking-tight">{project.repo_url} ({project.branch})</p>
+                <button
+                  onClick={handleOpenLinkModal}
+                  className="text-[10px] text-indigo-400 hover:text-indigo-300 font-medium underline underline-offset-2 transition-colors ml-1"
+                >
+                  Link Repository
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -382,7 +438,7 @@ export default function ProjectDetailsPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider font-mono">Architecture Topology Diagram</h3>
-                    <Badge className="bg-indigo-950/30 text-zinc-400 border-indigo-900/30 text-[10px] py-0.5 px-2">Mermaid Rendering</Badge>
+                    <Badge className="bg-zinc-800/10 text-zinc-350 border-zinc-700/20 text-[10px] py-0.5 px-2">Mermaid Rendering</Badge>
                   </div>
                   {archParsed ? (
                     <MermaidVisualizer chart={archParsed.system_diagram || `graph TD\n  Auth["Auth Service"] --> DB[("PostgreSQL")]\n  Orders["Order Service"] --> DB\n  Restaurant["Restaurant Service"] --> DB`} />
@@ -694,7 +750,7 @@ export default function ProjectDetailsPage() {
                           className={cn(
                             "w-full text-left px-2 py-2 rounded-md text-[11px] font-semibold transition-all flex items-center gap-2 border",
                             activeApiEndpointIdx === idx
-                              ? "bg-white/5 text-zinc-200 border-indigo-500/25"
+                              ? "bg-white/5 text-zinc-200 border-zinc-700/40"
                               : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/30 border-transparent"
                           )}
                         >
@@ -718,7 +774,7 @@ export default function ProjectDetailsPage() {
                               className={cn(
                                 "w-full text-left px-2 py-2 rounded-md text-[11px] font-semibold transition-all flex items-center gap-2 border",
                                 activeApiEndpointIdx === idx
-                                  ? "bg-white/5 text-zinc-200 border-indigo-500/25"
+                                  ? "bg-white/5 text-zinc-200 border-zinc-700/40"
                                   : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/30 border-transparent"
                               )}
                             >
@@ -908,6 +964,125 @@ export default function ProjectDetailsPage() {
                 className="bg-zinc-100 hover:bg-zinc-200 text-zinc-950 gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" /> Download Spec
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Link Repository Modal */}
+      {showLinkModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+          <Card className="bg-[#0c0c0e] border-zinc-850 w-full max-w-lg p-6 shadow-2xl relative select-none flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <div className="flex items-center gap-2">
+                <FolderGit2 className="w-5 h-5 text-zinc-450" />
+                <h3 className="text-sm font-semibold text-zinc-100">Link Project Repository</h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowLinkModal(false)}
+                className="h-8 w-8 p-0 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 rounded-md font-sans text-xs"
+              >
+                ✕
+              </Button>
+            </div>
+
+            {linkError && (
+              <div className="p-3 bg-red-500/5 border border-red-500/20 rounded-lg flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-[11px] text-red-400 leading-relaxed">{linkError}</p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold tracking-wider text-zinc-450">Search Repository</label>
+                <input
+                  type="text"
+                  value={repoSearch}
+                  onChange={(e) => setRepoSearch(e.target.value)}
+                  placeholder="Filter repositories..."
+                  className="w-full bg-zinc-950 border border-zinc-850 rounded-lg px-3 py-2 text-xs text-zinc-250 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 font-sans"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold tracking-wider text-zinc-450">Select Repository</label>
+                {loadingRepos ? (
+                  <div className="flex items-center justify-center py-6 border border-zinc-850 rounded-lg bg-zinc-950/20">
+                    <Loader2 className="w-5 h-5 text-zinc-400 animate-spin" />
+                  </div>
+                ) : repos.length === 0 ? (
+                  <div className="p-4 border border-zinc-850 rounded-lg bg-zinc-950/20 text-center space-y-2">
+                    <AlertTriangle className="w-5 h-5 text-zinc-500 mx-auto" />
+                    <p className="text-[11px] text-zinc-450">No repositories loaded.</p>
+                    <p className="text-[10px] text-zinc-550">Please connect your GitHub account under Settings first.</p>
+                  </div>
+                ) : (
+                  <div className="max-h-48 overflow-y-auto border border-zinc-850 rounded-lg bg-zinc-950 divide-y divide-zinc-900">
+                    {repos
+                      .filter(r => r.full_name.toLowerCase().includes(repoSearch.toLowerCase()))
+                      .map((repoItem) => {
+                        const isSelected = selectedRepoUrl === repoItem.html_url;
+                        return (
+                          <button
+                            key={repoItem.html_url}
+                            type="button"
+                            onClick={() => setSelectedRepoUrl(repoItem.html_url)}
+                            className={cn(
+                              "w-full text-left px-3 py-2.5 text-xs transition-colors flex items-center justify-between",
+                              isSelected ? "bg-zinc-900/60 text-zinc-100 font-medium" : "text-zinc-400 hover:bg-zinc-900/30 hover:text-zinc-200"
+                            )}
+                          >
+                            <span className="truncate font-mono">{repoItem.full_name}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-indigo-400" />}
+                          </button>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold tracking-wider text-zinc-450">Default Branch</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={selectedBranch}
+                    onChange={(e) => setSelectedBranch(e.target.value)}
+                    placeholder="e.g. main"
+                    className="w-full bg-zinc-950 border border-zinc-850 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-250 placeholder-zinc-650 focus:outline-none focus:border-zinc-700 font-mono"
+                  />
+                  <GitBranch className="w-3.5 h-3.5 text-zinc-600 absolute left-3 top-1/2 -translate-y-1/2" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 border-t border-zinc-800 pt-4 mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowLinkModal(false)}
+                className="border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                disabled={updatingProject}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleLinkRepo}
+                className="bg-indigo-600 hover:bg-indigo-550 text-zinc-100 gap-1.5"
+                disabled={updatingProject || !selectedRepoUrl}
+              >
+                {updatingProject ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...
+                  </>
+                ) : (
+                  "Save Connection"
+                )}
               </Button>
             </div>
           </Card>

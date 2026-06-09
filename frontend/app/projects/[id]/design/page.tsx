@@ -176,7 +176,7 @@ export default function DesignPage() {
       </aside>
 
       {/* ── Right: active step content ───────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto p-6 max-w-4xl">
+      <main className="flex-1 overflow-y-auto p-6">
         {/* Step header */}
         <div className="flex items-center justify-between mb-6">
           <div>

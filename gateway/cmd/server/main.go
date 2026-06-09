@@ -83,7 +83,7 @@ func main() {
 	designHandler := handlers.NewDesignHandler(designService, projectService)
 	exportHandler := handlers.NewExportHandler(designService, projectService, aiClient)
 	workspaceHandler := handlers.NewWorkspaceHandler(workspaceService, projectService)
-	taskHandler := handlers.NewTaskHandler(taskService, workspaceService, designService)
+	taskHandler := handlers.NewTaskHandler(taskService, workspaceService, designService, aiClient)
 
 	// 7. Setup HTTP Router & Middleware Tree
 	r := chi.NewRouter()
@@ -97,7 +97,7 @@ func main() {
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 			if r.Method == "OPTIONS" {
 				w.WriteHeader(http.StatusOK)
@@ -118,10 +118,17 @@ func main() {
 
 	r.Post("/api/v1/auth/signup", authHandler.SignUpHandler)
 	r.Post("/api/v1/auth/login", authHandler.LoginHandler)
+	r.Get("/api/v1/auth/callback/github", authHandler.GithubAuthCallback)
 
 	// Protected Routes Group
 	r.Group(func(p chi.Router) {
 		p.Use(authHandler.AuthMiddleware)
+
+		// GitHub User OAuth Endpoints
+		p.Get("/api/v1/auth/github/url", authHandler.GetGithubAuthURL)
+		p.Get("/api/v1/auth/github/status", authHandler.GetGithubAuthStatus)
+		p.Delete("/api/v1/auth/github", authHandler.DisconnectGithubAuth)
+		p.Get("/api/v1/auth/github/repos", authHandler.GetGithubRepos)
 
 		// Workspace Endpoints
 		p.Post("/api/v1/workspaces", workspaceHandler.CreateWorkspace)
@@ -136,6 +143,8 @@ func main() {
 		p.Post("/api/v1/projects", projectHandler.CreateProject)
 		p.Get("/api/v1/projects", projectHandler.ListProjects)
 		p.Get("/api/v1/projects/{id}", projectHandler.GetProjectByID)
+		p.Patch("/api/v1/projects/{id}", projectHandler.UpdateProject)
+		p.Delete("/api/v1/projects/{id}", projectHandler.DeleteProject)
 
 		// Design Workflow Endpoints
 		p.Post("/api/v1/projects/{id}/designs", designHandler.CreateDesign)
@@ -150,6 +159,16 @@ func main() {
 		p.Patch("/api/v1/designs/{id}/tasks/status", taskHandler.UpdateTaskStatus)
 		p.Get("/api/v1/designs/{id}/tasks", taskHandler.ListDesignTasks)
 		p.Get("/api/v1/me/tasks", taskHandler.ListMyTasks)
+
+		p.Get("/api/v1/tasks/{id}", taskHandler.GetTaskByID)
+		p.Get("/api/v1/tasks/{id}/messages", taskHandler.ListTaskMessages)
+		p.Post("/api/v1/tasks/{id}/messages", taskHandler.CreateTaskMessage)
+		p.Post("/api/v1/tasks/{id}/github/issue/draft", taskHandler.DraftGithubIssueForTask)
+		p.Post("/api/v1/tasks/{id}/github/issue", taskHandler.CreateGithubIssueForTask)
+		p.Delete("/api/v1/tasks/{id}/github/issue", taskHandler.UnlinkGithubIssueForTask)
+		p.Get("/api/v1/settings/github-app", taskHandler.GetGithubAppSettings)
+		p.Post("/api/v1/settings/github-app", taskHandler.UpdateGithubAppSettings)
+		p.Get("/api/v1/settings/github-app/install-url", taskHandler.GetGithubAppInstallURL)
 
 		// Artifact Export Endpoints
 		p.Get("/api/v1/designs/{id}/export", exportHandler.ExportZip)

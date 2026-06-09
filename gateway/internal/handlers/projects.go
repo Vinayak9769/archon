@@ -114,3 +114,68 @@ func (h *ProjectHandler) GetProjectByID(w http.ResponseWriter, r *http.Request) 
 
 	_ = json.NewEncoder(w).Encode(p)
 }
+
+// DeleteProject removes a project owned by the authenticated user
+func (h *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	userID := GetUserID(r.Context())
+	if userID == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(errorResp{Error: "unauthorized"})
+		return
+	}
+
+	projectID := chi.URLParam(r, "id")
+	err := h.projectService.DeleteProject(r.Context(), projectID, userID)
+	if err != nil {
+		if errors.Is(err, services.ErrProjectNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			_ = json.NewEncoder(w).Encode(errorResp{Error: "project not found or not owned by you"})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(errorResp{Error: "failed to delete project"})
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// PATCH /api/v1/projects/{id}
+func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	userID := GetUserID(r.Context())
+	if userID == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(errorResp{Error: "unauthorized"})
+		return
+	}
+
+	projectID := chi.URLParam(r, "id")
+
+	var req struct {
+		RepoURL string `json:"repo_url"`
+		Branch  string `json:"branch"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(errorResp{Error: "invalid request body"})
+		return
+	}
+
+	p, err := h.projectService.UpdateProject(r.Context(), projectID, userID, req.RepoURL, req.Branch)
+	if err != nil {
+		if errors.Is(err, services.ErrProjectNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			_ = json.NewEncoder(w).Encode(errorResp{Error: "project not found"})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(errorResp{Error: "failed to update project: " + err.Error()})
+		return
+	}
+
+	_ = json.NewEncoder(w).Encode(p)
+}
+
+
