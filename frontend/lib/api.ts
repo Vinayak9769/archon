@@ -413,5 +413,147 @@ export async function apiUpdateProject(
   });
 }
 
+export interface GithubPR {
+  id: string;
+  number: number;
+  title: string;
+  author: string;
+  branch: string;
+  targetBranch: string;
+  createdAt: string;
+  status: string;
+  repository: string;
+}
+
+export interface PRActivity {
+  type: "opened" | "comment" | "review_comment" | "commit";
+  author: string;
+  body: string;
+  createdAt: string;
+  file?: string;
+  line?: number;
+}
+
+export interface PRDetails extends GithubPR {
+  additions: number;
+  deletions: number;
+  filesChanged: number;
+  activity: PRActivity[];
+}
+
+export interface PRFile {
+  filename: string;
+  additions: number;
+  deletions: number;
+  status: string;
+  patch: string;
+}
+
+export async function apiListRepoPRs(projectId?: string): Promise<GithubPR[]> {
+  const url = projectId ? `/api/v1/github/prs?project_id=${projectId}` : "/api/v1/github/prs";
+  return request<GithubPR[]>(url);
+}
+
+export async function apiGetPRDetails(number: number, projectId?: string): Promise<PRDetails> {
+  const url = projectId ? `/api/v1/github/prs/${number}?project_id=${projectId}` : `/api/v1/github/prs/${number}`;
+  return request<PRDetails>(url);
+}
+
+export async function apiGetPRFiles(number: number, projectId?: string): Promise<PRFile[]> {
+  const url = projectId ? `/api/v1/github/prs/${number}/files?project_id=${projectId}` : `/api/v1/github/prs/${number}/files`;
+  return request<PRFile[]>(url);
+}
+
+export async function apiCreatePRComment(number: number, body: string, projectId?: string): Promise<{ status: string; mock?: boolean }> {
+  const url = projectId ? `/api/v1/github/prs/${number}/comments?project_id=${projectId}` : `/api/v1/github/prs/${number}/comments`;
+  return request<{ status: string; mock?: boolean }>(url, {
+    method: "POST",
+    body: JSON.stringify({ body }),
+  });
+}
+
+export async function apiMergePR(number: number, projectId?: string): Promise<{ merged: boolean; mock?: boolean }> {
+  const url = projectId ? `/api/v1/github/prs/${number}/merge?project_id=${projectId}` : `/api/v1/github/prs/${number}/merge`;
+  return request<{ merged: boolean; mock?: boolean }>(url, {
+    method: "POST",
+  });
+}
+
+// ── Bidirectional: Checks, Reviewers, Reviews ────────────────────────────────
+
+export interface PRCheckRun {
+  name: string;
+  status: "queued" | "in_progress" | "completed";
+  conclusion: "success" | "failure" | "neutral" | "cancelled" | "skipped" | "timed_out" | "action_required" | null;
+  url: string;
+}
+
+export interface PRReviewer {
+  login: string;
+  avatar_url: string;
+}
+
+export interface PRReview {
+  login: string;
+  avatar_url: string;
+  state: "APPROVED" | "CHANGES_REQUESTED" | "COMMENTED" | "DISMISSED" | "PENDING";
+  submittedAt: string;
+}
+
+export interface PRReviewersResponse {
+  requested: PRReviewer[];
+  reviews: PRReview[];
+}
+
+export interface RepoCollaborator {
+  login: string;
+  avatar_url: string;
+}
+
+export async function apiGetPRChecks(number: number, projectId?: string): Promise<PRCheckRun[]> {
+  const url = projectId ? `/api/v1/github/prs/${number}/checks?project_id=${projectId}` : `/api/v1/github/prs/${number}/checks`;
+  return request<PRCheckRun[]>(url);
+}
+
+export async function apiGetPRReviewers(number: number, projectId?: string): Promise<PRReviewersResponse> {
+  const url = projectId ? `/api/v1/github/prs/${number}/reviewers?project_id=${projectId}` : `/api/v1/github/prs/${number}/reviewers`;
+  return request<PRReviewersResponse>(url);
+}
+
+export async function apiAddPRReviewer(number: number, reviewers: string[], projectId?: string): Promise<{ ok: boolean }> {
+  const url = projectId ? `/api/v1/github/prs/${number}/reviewers?project_id=${projectId}` : `/api/v1/github/prs/${number}/reviewers`;
+  return request<{ ok: boolean }>(url, {
+    method: "POST",
+    body: JSON.stringify({ reviewers }),
+  });
+}
+
+export async function apiRemovePRReviewer(number: number, reviewers: string[], projectId?: string): Promise<{ ok: boolean }> {
+  const url = projectId ? `/api/v1/github/prs/${number}/reviewers?project_id=${projectId}` : `/api/v1/github/prs/${number}/reviewers`;
+  return request<{ ok: boolean }>(url, {
+    method: "DELETE",
+    body: JSON.stringify({ reviewers }),
+  });
+}
+
+export async function apiSubmitPRReview(
+  number: number,
+  event: "APPROVE" | "REQUEST_CHANGES" | "COMMENT",
+  body: string,
+  projectId?: string
+): Promise<{ ok: boolean }> {
+  const url = projectId ? `/api/v1/github/prs/${number}/reviews?project_id=${projectId}` : `/api/v1/github/prs/${number}/reviews`;
+  return request<{ ok: boolean }>(url, {
+    method: "POST",
+    body: JSON.stringify({ event, body }),
+  });
+}
+
+export async function apiGetRepoCollaborators(projectId?: string): Promise<RepoCollaborator[]> {
+  const url = projectId ? `/api/v1/github/repos/collaborators?project_id=${projectId}` : "/api/v1/github/repos/collaborators";
+  return request<RepoCollaborator[]>(url);
+}
+
+
 
 

@@ -84,6 +84,7 @@ func main() {
 	exportHandler := handlers.NewExportHandler(designService, projectService, aiClient)
 	workspaceHandler := handlers.NewWorkspaceHandler(workspaceService, projectService)
 	taskHandler := handlers.NewTaskHandler(taskService, workspaceService, designService, aiClient)
+	reviewHandler := handlers.NewReviewHandler(projectService)
 
 	// 7. Setup HTTP Router & Middleware Tree
 	r := chi.NewRouter()
@@ -169,6 +170,19 @@ func main() {
 		p.Get("/api/v1/settings/github-app", taskHandler.GetGithubAppSettings)
 		p.Post("/api/v1/settings/github-app", taskHandler.UpdateGithubAppSettings)
 		p.Get("/api/v1/settings/github-app/install-url", taskHandler.GetGithubAppInstallURL)
+
+		// GitHub PR Review Endpoints
+		p.Get("/api/v1/github/prs", reviewHandler.ListRepoPRs)
+		p.Get("/api/v1/github/prs/{number}", reviewHandler.GetPRDetails)
+		p.Get("/api/v1/github/prs/{number}/files", reviewHandler.GetPRFiles)
+		p.Get("/api/v1/github/prs/{number}/checks", reviewHandler.GetPRChecks)
+		p.Get("/api/v1/github/prs/{number}/reviewers", reviewHandler.GetPRReviewers)
+		p.Post("/api/v1/github/prs/{number}/reviewers", reviewHandler.AddPRReviewer)
+		p.Delete("/api/v1/github/prs/{number}/reviewers", reviewHandler.RemovePRReviewer)
+		p.Post("/api/v1/github/prs/{number}/reviews", reviewHandler.SubmitPRReview)
+		p.Post("/api/v1/github/prs/{number}/comments", reviewHandler.CreatePRComment)
+		p.Post("/api/v1/github/prs/{number}/merge", reviewHandler.MergePR)
+		p.Get("/api/v1/github/repos/collaborators", reviewHandler.GetRepoCollaborators)
 
 		// Artifact Export Endpoints
 		p.Get("/api/v1/designs/{id}/export", exportHandler.ExportZip)
