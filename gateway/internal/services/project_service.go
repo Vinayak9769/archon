@@ -126,3 +126,43 @@ func (s *ProjectService) GetProjectByID(ctx context.Context, id, requesterID str
 
 	return p, nil
 }
+
+// DeleteProject removes a project and all its designs. Only the owner may delete.
+func (s *ProjectService) DeleteProject(ctx context.Context, projectID, requesterID string) error {
+	result, err := s.postgres.DB.ExecContext(ctx,
+		"DELETE FROM projects WHERE id = $1 AND owner_id = $2",
+		projectID, requesterID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to delete project: %w", err)
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
+	if n == 0 {
+		return ErrProjectNotFound
+	}
+	return nil
+}
+
+func (s *ProjectService) UpdateProject(ctx context.Context, id, requesterID, repoURL, branch string) (*models.Project, error) {
+	p, err := s.GetProjectByID(ctx, id, requesterID)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.postgres.DB.ExecContext(ctx, `
+		UPDATE projects
+		SET repo_url = $1, branch = $2
+		WHERE id = $3
+	`, repoURL, branch, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update project: %w", err)
+	}
+
+	p.RepoURL = repoURL
+	p.Branch = branch
+	return p, nil
+}
+

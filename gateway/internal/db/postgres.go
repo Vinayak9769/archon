@@ -131,6 +131,39 @@ func (p *PostgresDB) RunMigrations() error {
 			updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			UNIQUE (design_id, epic_name, story_name, task_title)
 		);`,
+
+		// Add github_issue_url to task_assignments
+		`DO $$ BEGIN
+			ALTER TABLE task_assignments ADD COLUMN IF NOT EXISTS github_issue_url VARCHAR(255);
+		EXCEPTION WHEN duplicate_column THEN NULL;
+		END $$;`,
+
+		// Task messages table
+		`CREATE TABLE IF NOT EXISTS task_messages (
+			id          VARCHAR(255) PRIMARY KEY,
+			task_id     VARCHAR(255) NOT NULL REFERENCES task_assignments(id) ON DELETE CASCADE,
+			sender_id   VARCHAR(255) REFERENCES users(id) ON DELETE SET NULL,
+			sender_name VARCHAR(255) NOT NULL,
+			role        VARCHAR(50) NOT NULL DEFAULT 'member',
+			content     TEXT NOT NULL,
+			created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);`,
+
+		// GitHub App settings table
+		`CREATE TABLE IF NOT EXISTS github_app_settings (
+			id                  VARCHAR(255) PRIMARY KEY,
+			installed           BOOLEAN NOT NULL DEFAULT FALSE,
+			installation_type   VARCHAR(50) NOT NULL DEFAULT 'all',
+			repositories        TEXT NOT NULL DEFAULT ''
+		);`,
+
+		// User GitHub OAuth credentials table
+		`CREATE TABLE IF NOT EXISTS user_github_oauth (
+			user_id      VARCHAR(255) PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+			github_user  VARCHAR(255) NOT NULL,
+			access_token VARCHAR(255) NOT NULL,
+			connected_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);`,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

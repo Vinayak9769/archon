@@ -101,16 +101,16 @@ export default function WorkspaceDetailPage() {
   );
 
   if (error || !workspace) return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <Card className="bg-red-500/5 border-red-500/20 p-5 flex items-center gap-3">
-        <AlertCircle className="w-4 h-4 text-red-400" />
-        <p className="text-xs text-red-400">{error || "Workspace not found"}</p>
+    <div className="p-6">
+      <Card className="bg-zinc-800/10 border-zinc-700/20 p-5 flex items-center gap-3">
+        <AlertCircle className="w-4 h-4 text-zinc-400" />
+        <p className="text-xs text-zinc-400">{error || "Workspace not found"}</p>
       </Card>
     </div>
   );
 
   return (
-    <div className="p-6 max-w-[1100px] mx-auto space-y-6 min-h-screen bg-[#0a0a0b]">
+    <div className="p-6 space-y-6 min-h-screen bg-[#0a0a0b]">
       {/* Nav */}
       <Link href="/workspaces" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-350 transition-colors">
         <ArrowLeft className="w-3.5 h-3.5" /> All Workspaces
@@ -150,14 +150,14 @@ export default function WorkspaceDetailPage() {
           {/* Invite form (owner only) */}
           {isOwner && (
             <Card className="bg-[#111113] border-zinc-800/60 p-4 space-y-3">
-              <p className="text-[10px] text-zinc-500">Invite by email</p>
+              <p className="text-[10px] text-zinc-550">Invite by email</p>
               <form onSubmit={handleInvite} className="space-y-2">
                 <input
                   type="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="colleague@company.com"
-                  className="w-full bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-600/60 placeholder:text-zinc-700"
+                  className="w-full bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-600/60 placeholder:text-zinc-750"
                 />
                 <Button type="submit" size="sm" disabled={inviting || !inviteEmail.trim()}
                   className="w-full bg-zinc-900/60 hover:bg-zinc-800/60 text-zinc-200 border border-zinc-700/60 text-xs font-bold gap-1" variant="outline">
@@ -165,8 +165,8 @@ export default function WorkspaceDetailPage() {
                   Invite Member
                 </Button>
               </form>
-              {inviteError && <p className="text-[10px] text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{inviteError}</p>}
-              {inviteSuccess && <p className="text-[10px] text-emerald-400 flex items-center gap-1"><Check className="w-3 h-3" />Member added!</p>}
+              {inviteError && <p className="text-[10px] text-zinc-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{inviteError}</p>}
+              {inviteSuccess && <p className="text-[10px] text-zinc-300 flex items-center gap-1"><Check className="w-3 h-3" />Member added!</p>}
             </Card>
           )}
 
@@ -180,14 +180,14 @@ export default function WorkspaceDetailPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-semibold text-zinc-300 truncate">{m.email}</p>
                   <div className="flex items-center gap-1">
-                    {m.role === "owner" && <Crown className="w-2.5 h-2.5 text-amber-400" />}
+                    {m.role === "owner" && <Crown className="w-2.5 h-2.5 text-zinc-400" />}
                     <span className="text-[9px] text-zinc-600 capitalize">{m.role}</span>
                   </div>
                 </div>
                 {isOwner && m.user_id !== currentUserId && (
                   <button
                     onClick={() => handleRemoveMember(m.user_id)}
-                    className="text-zinc-700 hover:text-red-400 transition-colors flex-shrink-0"
+                    className="text-zinc-700 hover:text-zinc-300 transition-colors flex-shrink-0"
                     title="Remove member"
                   >
                     <UserMinus className="w-3.5 h-3.5" />

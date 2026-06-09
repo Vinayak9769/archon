@@ -944,3 +944,130 @@ def generate_backlog_agent(
         response_model=ImplementationBacklog,
         model=model
     )
+
+
+# ─── GitHub Issue Agents ──────────────────────────────────────────────────────
+
+class IssueDraftQuestions(BaseModel):
+    questions: List[str] = Field(
+        description="A list of 3-5 targeted clarifying questions the agent needs answered to write a high-quality GitHub issue."
+    )
+
+
+def generate_issue_questions_agent(
+    task_title: str,
+    epic_name: str,
+    story_name: str,
+    project_name: str,
+    workspace: str,
+    description: str,
+    messages: List[dict],
+    client: LLMClient,
+    model: Optional[str] = None,
+) -> IssueDraftQuestions:
+    """Step 1: Analyse task context and generate targeted clarifying questions."""
+    import json
+
+    thread_text = ""
+    if messages:
+        thread_text = "\n".join(
+            f"[{m.get('role','user').upper()}] {m.get('sender','')}: {m.get('content','')}"
+            for m in messages
+        )
+
+    system_instruction = (
+        "You are a senior engineering manager creating a GitHub issue for a task.\n"
+        "Your goal is to ask 3-5 precise, targeted clarifying questions that will help you "
+        "write a rich, actionable GitHub issue. Focus on:\n"
+        "- Acceptance criteria that are unclear\n"
+        "- Technical approach or constraints\n"
+        "- Edge cases or known blockers\n"
+        "- Dependencies on other tasks or services\n"
+        "- Definition of done\n\n"
+        "Do NOT ask about things that are already clear from the context."
+    )
+
+    prompt = (
+        f"Task: {task_title}\n"
+        f"Epic: {epic_name} | Story: {story_name}\n"
+        f"Project: {project_name} ({workspace})\n"
+    )
+    if description:
+        prompt += f"Description: {description}\n"
+    if thread_text:
+        prompt += f"\nDiscussion thread so far:\n{thread_text}\n"
+    prompt += "\nGenerate targeted clarifying questions to help write the best possible GitHub issue."
+
+    return client.generate(
+        prompt=prompt,
+        system_instruction=system_instruction,
+        response_model=IssueDraftQuestions,
+        model=model,
+    )
+
+
+class FinalizedIssue(BaseModel):
+    title: str = Field(description="A concise, action-oriented GitHub issue title (max 80 chars).")
+    body: str = Field(description="Full GitHub issue body in markdown with ## sections.")
+
+
+def finalize_issue_agent(
+    task_title: str,
+    epic_name: str,
+    story_name: str,
+    project_name: str,
+    workspace: str,
+    description: str,
+    messages: List[dict],
+    answers: List[dict],
+    client: LLMClient,
+    model: Optional[str] = None,
+) -> FinalizedIssue:
+    """Step 2: Generate the final GitHub issue title + body using context and answers."""
+    thread_text = ""
+    if messages:
+        thread_text = "\n".join(
+            f"[{m.get('role','user').upper()}] {m.get('sender','')}: {m.get('content','')}"
+            for m in messages
+        )
+
+    answers_text = ""
+    if answers:
+        answers_text = "\n".join(
+            f"Q: {a.get('question','')}\nA: {a.get('answer','')}"
+            for a in answers
+        )
+
+    system_instruction = (
+        "You are a senior engineering manager writing a GitHub issue.\n"
+        "Using the task context, discussion thread, and answered clarifications, "
+        "write a high-quality, actionable GitHub issue.\n\n"
+        "The issue body MUST use GitHub Markdown and include these sections:\n"
+        "## 📋 Summary\n"
+        "## 🎯 Acceptance Criteria\n"
+        "## 🔧 Technical Notes\n"
+        "## 🚧 Dependencies\n"
+        "## 📎 Context\n\n"
+        "Be specific, clear, and professional. "
+        "The title must be concise and action-oriented (e.g. 'Implement POST /api/v1/users endpoint')."
+    )
+
+    prompt = (
+        f"Task: {task_title}\n"
+        f"Epic: {epic_name} | Story: {story_name}\n"
+        f"Project: {project_name} ({workspace})\n"
+    )
+    if description:
+        prompt += f"Description: {description}\n"
+    if thread_text:
+        prompt += f"\nDiscussion thread:\n{thread_text}\n"
+    if answers_text:
+        prompt += f"\nClarifications provided:\n{answers_text}\n"
+    prompt += "\nGenerate the final GitHub issue title and body."
+
+    return client.generate(
+        prompt=prompt,
+        system_instruction=system_instruction,
+        response_model=FinalizedIssue,
+        model=model,
+    )

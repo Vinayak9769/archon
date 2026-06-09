@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   LayoutDashboard, FolderGit2, Hexagon, FileText,
   Settings, Bell, Search, Plus, Layers, CheckSquare,
-  Check, Loader2, ChevronsUpDown, X
+  Check, Loader2, ChevronsUpDown, X, GitCompare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiListWorkspaces, apiCreateWorkspace, type Workspace } from "@/lib/api";
@@ -14,17 +14,20 @@ import { apiListWorkspaces, apiCreateWorkspace, type Workspace } from "@/lib/api
 // ── Nav items ─────────────────────────────────────────────────────────────────
 
 const primaryNav = [
-  { href: "/dashboard",   icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/projects",    icon: FolderGit2,      label: "Projects" },
-  { href: "/tasks",       icon: CheckSquare,     label: "My Tasks" },
-  { href: "/reports",     icon: FileText,        label: "Reports" },
-  { href: "/settings",    icon: Settings,        label: "Settings" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/projects", icon: FolderGit2, label: "Projects" },
+  { href: "/backlog", icon: Layers, label: "Backlog" },
+  { href: "/tasks", icon: CheckSquare, label: "My Tasks" },
+  { href: "/reviews", icon: GitCompare, label: "Reviews" },
+  { href: "/reports", icon: FileText, label: "Reports" },
+  { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
 // ── Workspace Switcher ────────────────────────────────────────────────────────
 
 function WorkspaceSwitcher() {
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(false);
@@ -34,15 +37,48 @@ function WorkspaceSwitcher() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
+  // Fetch workspaces immediately on mount
+  useEffect(() => {
+    setLoading(true);
+    apiListWorkspaces()
+      .then((ws) => {
+        const list = ws || [];
+        setWorkspaces(list);
+
+        // Extract workspace ID from pathname /workspaces/[id]
+        const match = pathname?.match(/\/workspaces\/([^/]+)/);
+        const pathWsId = match ? match[1] : null;
+
+        const savedId = localStorage.getItem("current_workspace_id");
+        const idToActive = pathWsId || savedId || (list.length ? list[0].id : null);
+
+        if (idToActive) {
+          setActiveId(idToActive);
+          localStorage.setItem("current_workspace_id", idToActive);
+        }
+      })
+      .catch(() => { })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Sync activeId if pathname changes
+  useEffect(() => {
+    const match = pathname?.match(/\/workspaces\/([^/]+)/);
+    const pathWsId = match ? match[1] : null;
+    if (pathWsId && pathWsId !== activeId) {
+      setActiveId(pathWsId);
+      localStorage.setItem("current_workspace_id", pathWsId);
+    }
+  }, [pathname, activeId]);
+
   useEffect(() => {
     if (!open) return;
     setLoading(true);
     apiListWorkspaces()
       .then((ws) => {
         setWorkspaces(ws || []);
-        if (!activeId && ws?.length) setActiveId(ws[0].id);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, [open]);
 
@@ -66,6 +102,7 @@ function WorkspaceSwitcher() {
       const ws = await apiCreateWorkspace(newName.trim());
       setWorkspaces((prev) => [ws, ...prev]);
       setActiveId(ws.id);
+      localStorage.setItem("current_workspace_id", ws.id);
       setNewName("");
       setShowCreate(false);
       setOpen(false);
@@ -76,6 +113,7 @@ function WorkspaceSwitcher() {
 
   function handleSwitch(ws: Workspace) {
     setActiveId(ws.id);
+    localStorage.setItem("current_workspace_id", ws.id);
     setOpen(false);
     router.push(`/workspaces/${ws.id}`);
   }
@@ -94,7 +132,7 @@ function WorkspaceSwitcher() {
         </div>
         <div className="flex-1 min-w-0 text-left">
           <span className="text-xs font-semibold text-zinc-300 truncate block">
-            {active?.name ?? "Workspaces"}
+            {active?.name ?? (workspaces[0]?.name ?? "Workspaces")}
           </span>
         </div>
         <ChevronsUpDown className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-400 flex-shrink-0 transition-colors" />
@@ -192,23 +230,31 @@ function WorkspaceSwitcher() {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setEmail(localStorage.getItem("archon_auth_email"));
+    }
+  }, []);
 
   const hidden = ["/", "/login", "/signup", "/onboarding"];
   if (hidden.includes(pathname)) return null;
 
+  const displayName = email
+    ? email.split("@")[0].split(/[\._\-]/).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(" ")
+    : "Developer";
+
+  const initials = displayName
+    .split(" ")
+    .map(part => part.charAt(0).toUpperCase())
+    .join("")
+    .slice(0, 2) || "D";
+
+  const displayEmail = email || "dev@archon.ai";
+
   return (
     <aside className="w-[220px] flex-shrink-0 flex flex-col h-full bg-[#0a0a0b] border-r border-zinc-800/60">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 py-4 border-b border-zinc-800/60">
-        <div className="w-7 h-7 rounded-lg bg-zinc-800 border border-zinc-700/60 flex items-center justify-center flex-shrink-0">
-          <Hexagon className="w-4 h-4 text-zinc-300" strokeWidth={2.5} />
-        </div>
-        <div className="flex flex-col min-w-0">
-          <span className="text-sm font-semibold text-zinc-100 leading-none">Archon</span>
-          <span className="text-[10px] text-zinc-500 leading-none mt-0.5">System Design AI</span>
-        </div>
-      </div>
-
       {/* Workspace Switcher */}
       <WorkspaceSwitcher />
 
@@ -264,11 +310,11 @@ export function Sidebar() {
         </button>
         <div className="flex items-center gap-2.5 px-2.5 py-2 mt-1 rounded-md hover:bg-zinc-900/60 cursor-pointer transition-all">
           <div className="w-6 h-6 rounded-full bg-zinc-700 border border-zinc-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] font-bold text-zinc-200">AK</span>
+            <span className="text-[10px] font-bold text-zinc-200">{initials}</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-xs font-medium text-zinc-300 leading-none">Arjun Kumar</span>
-            <span className="text-[10px] text-zinc-600 leading-none mt-0.5">Admin</span>
+            <span className="text-xs font-medium text-zinc-300 leading-none truncate">{displayName}</span>
+            <span className="text-[10px] text-zinc-600 leading-none mt-0.5 truncate">{displayEmail}</span>
           </div>
         </div>
       </div>

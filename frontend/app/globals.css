@@ -46,6 +46,43 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Remap indigo, violet, and purple to neutral zinc for a clean monochromatic theme */
+  --color-indigo-50: var(--color-zinc-50);
+  --color-indigo-100: var(--color-zinc-100);
+  --color-indigo-200: var(--color-zinc-200);
+  --color-indigo-300: var(--color-zinc-300);
+  --color-indigo-400: var(--color-zinc-400);
+  --color-indigo-500: var(--color-zinc-500);
+  --color-indigo-600: var(--color-zinc-600);
+  --color-indigo-700: var(--color-zinc-700);
+  --color-indigo-800: var(--color-zinc-800);
+  --color-indigo-900: var(--color-zinc-900);
+  --color-indigo-950: var(--color-zinc-950);
+
+  --color-violet-50: var(--color-zinc-50);
+  --color-violet-100: var(--color-zinc-100);
+  --color-violet-200: var(--color-zinc-200);
+  --color-violet-300: var(--color-zinc-300);
+  --color-violet-400: var(--color-zinc-400);
+  --color-violet-500: var(--color-zinc-500);
+  --color-violet-600: var(--color-zinc-600);
+  --color-violet-700: var(--color-zinc-700);
+  --color-violet-800: var(--color-zinc-800);
+  --color-violet-900: var(--color-zinc-900);
+  --color-violet-950: var(--color-zinc-950);
+
+  --color-purple-50: var(--color-zinc-50);
+  --color-purple-100: var(--color-zinc-100);
+  --color-purple-200: var(--color-zinc-200);
+  --color-purple-300: var(--color-zinc-300);
+  --color-purple-400: var(--color-zinc-400);
+  --color-purple-500: var(--color-zinc-500);
+  --color-purple-600: var(--color-zinc-600);
+  --color-purple-700: var(--color-zinc-700);
+  --color-purple-800: var(--color-zinc-800);
+  --color-purple-900: var(--color-zinc-900);
+  --color-purple-950: var(--color-zinc-950);
 }
 
 /* Archon Dark Theme — always dark */
@@ -151,7 +188,7 @@ body {
 
 /* Gradient utilities */
 .gradient-indigo {
-  background: linear-gradient(135deg, oklch(0.62 0.19 264) 0%, oklch(0.55 0.22 280) 100%);
+  background: linear-gradient(135deg, oklch(0.2 0 0) 0%, oklch(0.12 0 0) 100%);
 }
 
 .gradient-surface {

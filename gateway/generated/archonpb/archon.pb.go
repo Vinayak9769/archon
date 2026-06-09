@@ -734,6 +734,406 @@ func (x *GenerateBacklogResponse) GetBacklogModel() string {
 	return ""
 }
 
+type TaskMessageProto struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Role          string                 `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"` // "user" | "agent" | "system"
+	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Sender        string                 `protobuf:"bytes,3,opt,name=sender,proto3" json:"sender,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TaskMessageProto) Reset() {
+	*x = TaskMessageProto{}
+	mi := &file_archon_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TaskMessageProto) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TaskMessageProto) ProtoMessage() {}
+
+func (x *TaskMessageProto) ProtoReflect() protoreflect.Message {
+	mi := &file_archon_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TaskMessageProto.ProtoReflect.Descriptor instead.
+func (*TaskMessageProto) Descriptor() ([]byte, []int) {
+	return file_archon_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *TaskMessageProto) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *TaskMessageProto) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *TaskMessageProto) GetSender() string {
+	if x != nil {
+		return x.Sender
+	}
+	return ""
+}
+
+type GenerateIssueDraftRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TaskTitle     string                 `protobuf:"bytes,1,opt,name=task_title,json=taskTitle,proto3" json:"task_title,omitempty"`
+	EpicName      string                 `protobuf:"bytes,2,opt,name=epic_name,json=epicName,proto3" json:"epic_name,omitempty"`
+	StoryName     string                 `protobuf:"bytes,3,opt,name=story_name,json=storyName,proto3" json:"story_name,omitempty"`
+	ProjectName   string                 `protobuf:"bytes,4,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	Workspace     string                 `protobuf:"bytes,5,opt,name=workspace,proto3" json:"workspace,omitempty"`
+	Description   string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"` // task description if any
+	Messages      []*TaskMessageProto    `protobuf:"bytes,7,rep,name=messages,proto3" json:"messages,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GenerateIssueDraftRequest) Reset() {
+	*x = GenerateIssueDraftRequest{}
+	mi := &file_archon_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GenerateIssueDraftRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GenerateIssueDraftRequest) ProtoMessage() {}
+
+func (x *GenerateIssueDraftRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_archon_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GenerateIssueDraftRequest.ProtoReflect.Descriptor instead.
+func (*GenerateIssueDraftRequest) Descriptor() ([]byte, []int) {
+	return file_archon_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GenerateIssueDraftRequest) GetTaskTitle() string {
+	if x != nil {
+		return x.TaskTitle
+	}
+	return ""
+}
+
+func (x *GenerateIssueDraftRequest) GetEpicName() string {
+	if x != nil {
+		return x.EpicName
+	}
+	return ""
+}
+
+func (x *GenerateIssueDraftRequest) GetStoryName() string {
+	if x != nil {
+		return x.StoryName
+	}
+	return ""
+}
+
+func (x *GenerateIssueDraftRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *GenerateIssueDraftRequest) GetWorkspace() string {
+	if x != nil {
+		return x.Workspace
+	}
+	return ""
+}
+
+func (x *GenerateIssueDraftRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *GenerateIssueDraftRequest) GetMessages() []*TaskMessageProto {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+type GenerateIssueDraftResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Questions     []string               `protobuf:"bytes,1,rep,name=questions,proto3" json:"questions,omitempty"` // clarifying questions for the user
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GenerateIssueDraftResponse) Reset() {
+	*x = GenerateIssueDraftResponse{}
+	mi := &file_archon_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GenerateIssueDraftResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GenerateIssueDraftResponse) ProtoMessage() {}
+
+func (x *GenerateIssueDraftResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_archon_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GenerateIssueDraftResponse.ProtoReflect.Descriptor instead.
+func (*GenerateIssueDraftResponse) Descriptor() ([]byte, []int) {
+	return file_archon_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GenerateIssueDraftResponse) GetQuestions() []string {
+	if x != nil {
+		return x.Questions
+	}
+	return nil
+}
+
+type AnswerProto struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Question      string                 `protobuf:"bytes,1,opt,name=question,proto3" json:"question,omitempty"`
+	Answer        string                 `protobuf:"bytes,2,opt,name=answer,proto3" json:"answer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnswerProto) Reset() {
+	*x = AnswerProto{}
+	mi := &file_archon_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnswerProto) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnswerProto) ProtoMessage() {}
+
+func (x *AnswerProto) ProtoReflect() protoreflect.Message {
+	mi := &file_archon_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnswerProto.ProtoReflect.Descriptor instead.
+func (*AnswerProto) Descriptor() ([]byte, []int) {
+	return file_archon_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *AnswerProto) GetQuestion() string {
+	if x != nil {
+		return x.Question
+	}
+	return ""
+}
+
+func (x *AnswerProto) GetAnswer() string {
+	if x != nil {
+		return x.Answer
+	}
+	return ""
+}
+
+type FinalizeIssueRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TaskTitle     string                 `protobuf:"bytes,1,opt,name=task_title,json=taskTitle,proto3" json:"task_title,omitempty"`
+	EpicName      string                 `protobuf:"bytes,2,opt,name=epic_name,json=epicName,proto3" json:"epic_name,omitempty"`
+	StoryName     string                 `protobuf:"bytes,3,opt,name=story_name,json=storyName,proto3" json:"story_name,omitempty"`
+	ProjectName   string                 `protobuf:"bytes,4,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	Workspace     string                 `protobuf:"bytes,5,opt,name=workspace,proto3" json:"workspace,omitempty"`
+	Description   string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	Messages      []*TaskMessageProto    `protobuf:"bytes,7,rep,name=messages,proto3" json:"messages,omitempty"`
+	Answers       []*AnswerProto         `protobuf:"bytes,8,rep,name=answers,proto3" json:"answers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FinalizeIssueRequest) Reset() {
+	*x = FinalizeIssueRequest{}
+	mi := &file_archon_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinalizeIssueRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinalizeIssueRequest) ProtoMessage() {}
+
+func (x *FinalizeIssueRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_archon_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinalizeIssueRequest.ProtoReflect.Descriptor instead.
+func (*FinalizeIssueRequest) Descriptor() ([]byte, []int) {
+	return file_archon_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *FinalizeIssueRequest) GetTaskTitle() string {
+	if x != nil {
+		return x.TaskTitle
+	}
+	return ""
+}
+
+func (x *FinalizeIssueRequest) GetEpicName() string {
+	if x != nil {
+		return x.EpicName
+	}
+	return ""
+}
+
+func (x *FinalizeIssueRequest) GetStoryName() string {
+	if x != nil {
+		return x.StoryName
+	}
+	return ""
+}
+
+func (x *FinalizeIssueRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *FinalizeIssueRequest) GetWorkspace() string {
+	if x != nil {
+		return x.Workspace
+	}
+	return ""
+}
+
+func (x *FinalizeIssueRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *FinalizeIssueRequest) GetMessages() []*TaskMessageProto {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+func (x *FinalizeIssueRequest) GetAnswers() []*AnswerProto {
+	if x != nil {
+		return x.Answers
+	}
+	return nil
+}
+
+type FinalizeIssueResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Body          string                 `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FinalizeIssueResponse) Reset() {
+	*x = FinalizeIssueResponse{}
+	mi := &file_archon_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinalizeIssueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinalizeIssueResponse) ProtoMessage() {}
+
+func (x *FinalizeIssueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_archon_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinalizeIssueResponse.ProtoReflect.Descriptor instead.
+func (*FinalizeIssueResponse) Descriptor() ([]byte, []int) {
+	return file_archon_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *FinalizeIssueResponse) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *FinalizeIssueResponse) GetBody() string {
+	if x != nil {
+		return x.Body
+	}
+	return ""
+}
+
 var File_archon_proto protoreflect.FileDescriptor
 
 const file_archon_proto_rawDesc = "" +
@@ -790,13 +1190,48 @@ const file_archon_proto_rawDesc = "" +
 	"\tthread_id\x18\x01 \x01(\tR\bthreadId\x12\x1a\n" +
 	"\bfeedback\x18\x02 \x01(\tR\bfeedback\">\n" +
 	"\x17GenerateBacklogResponse\x12#\n" +
-	"\rbacklog_model\x18\x01 \x01(\tR\fbacklogModel2\xa8\x03\n" +
+	"\rbacklog_model\x18\x01 \x01(\tR\fbacklogModel\"X\n" +
+	"\x10TaskMessageProto\x12\x12\n" +
+	"\x04role\x18\x01 \x01(\tR\x04role\x12\x18\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\x12\x16\n" +
+	"\x06sender\x18\x03 \x01(\tR\x06sender\"\x8f\x02\n" +
+	"\x19GenerateIssueDraftRequest\x12\x1d\n" +
+	"\n" +
+	"task_title\x18\x01 \x01(\tR\ttaskTitle\x12\x1b\n" +
+	"\tepic_name\x18\x02 \x01(\tR\bepicName\x12\x1d\n" +
+	"\n" +
+	"story_name\x18\x03 \x01(\tR\tstoryName\x12!\n" +
+	"\fproject_name\x18\x04 \x01(\tR\vprojectName\x12\x1c\n" +
+	"\tworkspace\x18\x05 \x01(\tR\tworkspace\x12 \n" +
+	"\vdescription\x18\x06 \x01(\tR\vdescription\x124\n" +
+	"\bmessages\x18\a \x03(\v2\x18.archon.TaskMessageProtoR\bmessages\":\n" +
+	"\x1aGenerateIssueDraftResponse\x12\x1c\n" +
+	"\tquestions\x18\x01 \x03(\tR\tquestions\"A\n" +
+	"\vAnswerProto\x12\x1a\n" +
+	"\bquestion\x18\x01 \x01(\tR\bquestion\x12\x16\n" +
+	"\x06answer\x18\x02 \x01(\tR\x06answer\"\xb9\x02\n" +
+	"\x14FinalizeIssueRequest\x12\x1d\n" +
+	"\n" +
+	"task_title\x18\x01 \x01(\tR\ttaskTitle\x12\x1b\n" +
+	"\tepic_name\x18\x02 \x01(\tR\bepicName\x12\x1d\n" +
+	"\n" +
+	"story_name\x18\x03 \x01(\tR\tstoryName\x12!\n" +
+	"\fproject_name\x18\x04 \x01(\tR\vprojectName\x12\x1c\n" +
+	"\tworkspace\x18\x05 \x01(\tR\tworkspace\x12 \n" +
+	"\vdescription\x18\x06 \x01(\tR\vdescription\x124\n" +
+	"\bmessages\x18\a \x03(\v2\x18.archon.TaskMessageProtoR\bmessages\x12-\n" +
+	"\aanswers\x18\b \x03(\v2\x13.archon.AnswerProtoR\aanswers\"A\n" +
+	"\x15FinalizeIssueResponse\x12\x14\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\x12\x12\n" +
+	"\x04body\x18\x02 \x01(\tR\x04body2\xd3\x04\n" +
 	"\bArchonAI\x12L\n" +
 	"\rStartWorkflow\x12\x1c.archon.StartWorkflowRequest\x1a\x1d.archon.StartWorkflowResponse\x12O\n" +
 	"\x0eResumeWorkflow\x12\x1d.archon.ResumeWorkflowRequest\x1a\x1e.archon.ResumeWorkflowResponse\x12U\n" +
 	"\x10GetWorkflowState\x12\x1f.archon.GetWorkflowStateRequest\x1a .archon.GetWorkflowStateResponse\x12R\n" +
 	"\x0fExportArtifacts\x12\x1e.archon.ExportArtifactsRequest\x1a\x1f.archon.ExportArtifactsResponse\x12R\n" +
-	"\x0fGenerateBacklog\x12\x1e.archon.GenerateBacklogRequest\x1a\x1f.archon.GenerateBacklogResponseB#Z!archon/gateway/generated/archonpbb\x06proto3"
+	"\x0fGenerateBacklog\x12\x1e.archon.GenerateBacklogRequest\x1a\x1f.archon.GenerateBacklogResponse\x12[\n" +
+	"\x12GenerateIssueDraft\x12!.archon.GenerateIssueDraftRequest\x1a\".archon.GenerateIssueDraftResponse\x12L\n" +
+	"\rFinalizeIssue\x12\x1c.archon.FinalizeIssueRequest\x1a\x1d.archon.FinalizeIssueResponseB#Z!archon/gateway/generated/archonpbb\x06proto3"
 
 var (
 	file_archon_proto_rawDescOnce sync.Once
@@ -810,37 +1245,50 @@ func file_archon_proto_rawDescGZIP() []byte {
 	return file_archon_proto_rawDescData
 }
 
-var file_archon_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_archon_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_archon_proto_goTypes = []any{
-	(*StartWorkflowRequest)(nil),     // 0: archon.StartWorkflowRequest
-	(*StartWorkflowResponse)(nil),    // 1: archon.StartWorkflowResponse
-	(*ResumeWorkflowRequest)(nil),    // 2: archon.ResumeWorkflowRequest
-	(*ResumeWorkflowResponse)(nil),   // 3: archon.ResumeWorkflowResponse
-	(*GetWorkflowStateRequest)(nil),  // 4: archon.GetWorkflowStateRequest
-	(*GetWorkflowStateResponse)(nil), // 5: archon.GetWorkflowStateResponse
-	(*ExportArtifactsRequest)(nil),   // 6: archon.ExportArtifactsRequest
-	(*ExportedFile)(nil),             // 7: archon.ExportedFile
-	(*ExportArtifactsResponse)(nil),  // 8: archon.ExportArtifactsResponse
-	(*GenerateBacklogRequest)(nil),   // 9: archon.GenerateBacklogRequest
-	(*GenerateBacklogResponse)(nil),  // 10: archon.GenerateBacklogResponse
+	(*StartWorkflowRequest)(nil),       // 0: archon.StartWorkflowRequest
+	(*StartWorkflowResponse)(nil),      // 1: archon.StartWorkflowResponse
+	(*ResumeWorkflowRequest)(nil),      // 2: archon.ResumeWorkflowRequest
+	(*ResumeWorkflowResponse)(nil),     // 3: archon.ResumeWorkflowResponse
+	(*GetWorkflowStateRequest)(nil),    // 4: archon.GetWorkflowStateRequest
+	(*GetWorkflowStateResponse)(nil),   // 5: archon.GetWorkflowStateResponse
+	(*ExportArtifactsRequest)(nil),     // 6: archon.ExportArtifactsRequest
+	(*ExportedFile)(nil),               // 7: archon.ExportedFile
+	(*ExportArtifactsResponse)(nil),    // 8: archon.ExportArtifactsResponse
+	(*GenerateBacklogRequest)(nil),     // 9: archon.GenerateBacklogRequest
+	(*GenerateBacklogResponse)(nil),    // 10: archon.GenerateBacklogResponse
+	(*TaskMessageProto)(nil),           // 11: archon.TaskMessageProto
+	(*GenerateIssueDraftRequest)(nil),  // 12: archon.GenerateIssueDraftRequest
+	(*GenerateIssueDraftResponse)(nil), // 13: archon.GenerateIssueDraftResponse
+	(*AnswerProto)(nil),                // 14: archon.AnswerProto
+	(*FinalizeIssueRequest)(nil),       // 15: archon.FinalizeIssueRequest
+	(*FinalizeIssueResponse)(nil),      // 16: archon.FinalizeIssueResponse
 }
 var file_archon_proto_depIdxs = []int32{
 	7,  // 0: archon.ExportArtifactsResponse.files:type_name -> archon.ExportedFile
-	0,  // 1: archon.ArchonAI.StartWorkflow:input_type -> archon.StartWorkflowRequest
-	2,  // 2: archon.ArchonAI.ResumeWorkflow:input_type -> archon.ResumeWorkflowRequest
-	4,  // 3: archon.ArchonAI.GetWorkflowState:input_type -> archon.GetWorkflowStateRequest
-	6,  // 4: archon.ArchonAI.ExportArtifacts:input_type -> archon.ExportArtifactsRequest
-	9,  // 5: archon.ArchonAI.GenerateBacklog:input_type -> archon.GenerateBacklogRequest
-	1,  // 6: archon.ArchonAI.StartWorkflow:output_type -> archon.StartWorkflowResponse
-	3,  // 7: archon.ArchonAI.ResumeWorkflow:output_type -> archon.ResumeWorkflowResponse
-	5,  // 8: archon.ArchonAI.GetWorkflowState:output_type -> archon.GetWorkflowStateResponse
-	8,  // 9: archon.ArchonAI.ExportArtifacts:output_type -> archon.ExportArtifactsResponse
-	10, // 10: archon.ArchonAI.GenerateBacklog:output_type -> archon.GenerateBacklogResponse
-	6,  // [6:11] is the sub-list for method output_type
-	1,  // [1:6] is the sub-list for method input_type
-	1,  // [1:1] is the sub-list for extension type_name
-	1,  // [1:1] is the sub-list for extension extendee
-	0,  // [0:1] is the sub-list for field type_name
+	11, // 1: archon.GenerateIssueDraftRequest.messages:type_name -> archon.TaskMessageProto
+	11, // 2: archon.FinalizeIssueRequest.messages:type_name -> archon.TaskMessageProto
+	14, // 3: archon.FinalizeIssueRequest.answers:type_name -> archon.AnswerProto
+	0,  // 4: archon.ArchonAI.StartWorkflow:input_type -> archon.StartWorkflowRequest
+	2,  // 5: archon.ArchonAI.ResumeWorkflow:input_type -> archon.ResumeWorkflowRequest
+	4,  // 6: archon.ArchonAI.GetWorkflowState:input_type -> archon.GetWorkflowStateRequest
+	6,  // 7: archon.ArchonAI.ExportArtifacts:input_type -> archon.ExportArtifactsRequest
+	9,  // 8: archon.ArchonAI.GenerateBacklog:input_type -> archon.GenerateBacklogRequest
+	12, // 9: archon.ArchonAI.GenerateIssueDraft:input_type -> archon.GenerateIssueDraftRequest
+	15, // 10: archon.ArchonAI.FinalizeIssue:input_type -> archon.FinalizeIssueRequest
+	1,  // 11: archon.ArchonAI.StartWorkflow:output_type -> archon.StartWorkflowResponse
+	3,  // 12: archon.ArchonAI.ResumeWorkflow:output_type -> archon.ResumeWorkflowResponse
+	5,  // 13: archon.ArchonAI.GetWorkflowState:output_type -> archon.GetWorkflowStateResponse
+	8,  // 14: archon.ArchonAI.ExportArtifacts:output_type -> archon.ExportArtifactsResponse
+	10, // 15: archon.ArchonAI.GenerateBacklog:output_type -> archon.GenerateBacklogResponse
+	13, // 16: archon.ArchonAI.GenerateIssueDraft:output_type -> archon.GenerateIssueDraftResponse
+	16, // 17: archon.ArchonAI.FinalizeIssue:output_type -> archon.FinalizeIssueResponse
+	11, // [11:18] is the sub-list for method output_type
+	4,  // [4:11] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_archon_proto_init() }
@@ -854,7 +1302,7 @@ func file_archon_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_archon_proto_rawDesc), len(file_archon_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

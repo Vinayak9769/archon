@@ -11,6 +11,7 @@ const breadcrumbMap: Record<string, { label: string; parent?: string }> = {
   "/analyses/new": { label: "New Analysis", parent: "/analyses" },
   "/architecture": { label: "Architecture Visualization" },
   "/drift": { label: "Architecture Drift" },
+  "/backlog": { label: "Implementation Backlog" },
   "/reports": { label: "Reports" },
   "/settings": { label: "Settings" },
 };

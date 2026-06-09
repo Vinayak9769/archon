@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from . import archon_pb2 as archon__pb2
+import archon_pb2 as archon__pb2
 
 GRPC_GENERATED_VERSION = '1.81.0'
 GRPC_VERSION = grpc.__version__
@@ -63,6 +63,16 @@ class ArchonAIStub:
                 request_serializer=archon__pb2.GenerateBacklogRequest.SerializeToString,
                 response_deserializer=archon__pb2.GenerateBacklogResponse.FromString,
                 _registered_method=True)
+        self.GenerateIssueDraft = channel.unary_unary(
+                '/archon.ArchonAI/GenerateIssueDraft',
+                request_serializer=archon__pb2.GenerateIssueDraftRequest.SerializeToString,
+                response_deserializer=archon__pb2.GenerateIssueDraftResponse.FromString,
+                _registered_method=True)
+        self.FinalizeIssue = channel.unary_unary(
+                '/archon.ArchonAI/FinalizeIssue',
+                request_serializer=archon__pb2.FinalizeIssueRequest.SerializeToString,
+                response_deserializer=archon__pb2.FinalizeIssueResponse.FromString,
+                _registered_method=True)
 
 
 class ArchonAIServicer:
@@ -108,6 +118,20 @@ class ArchonAIServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GenerateIssueDraft(self, request, context):
+        """GenerateIssueDraft (Step 1): analyses task context and returns clarifying questions.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def FinalizeIssue(self, request, context):
+        """FinalizeIssue (Step 2): generates the final GitHub issue title + body using answers.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ArchonAIServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -135,6 +159,16 @@ def add_ArchonAIServicer_to_server(servicer, server):
                     servicer.GenerateBacklog,
                     request_deserializer=archon__pb2.GenerateBacklogRequest.FromString,
                     response_serializer=archon__pb2.GenerateBacklogResponse.SerializeToString,
+            ),
+            'GenerateIssueDraft': grpc.unary_unary_rpc_method_handler(
+                    servicer.GenerateIssueDraft,
+                    request_deserializer=archon__pb2.GenerateIssueDraftRequest.FromString,
+                    response_serializer=archon__pb2.GenerateIssueDraftResponse.SerializeToString,
+            ),
+            'FinalizeIssue': grpc.unary_unary_rpc_method_handler(
+                    servicer.FinalizeIssue,
+                    request_deserializer=archon__pb2.FinalizeIssueRequest.FromString,
+                    response_serializer=archon__pb2.FinalizeIssueResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -276,6 +310,60 @@ class ArchonAI:
             '/archon.ArchonAI/GenerateBacklog',
             archon__pb2.GenerateBacklogRequest.SerializeToString,
             archon__pb2.GenerateBacklogResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GenerateIssueDraft(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/archon.ArchonAI/GenerateIssueDraft',
+            archon__pb2.GenerateIssueDraftRequest.SerializeToString,
+            archon__pb2.GenerateIssueDraftResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def FinalizeIssue(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/archon.ArchonAI/FinalizeIssue',
+            archon__pb2.FinalizeIssueRequest.SerializeToString,
+            archon__pb2.FinalizeIssueResponse.FromString,
             options,
             channel_credentials,
             insecure,

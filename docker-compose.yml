@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: vinayak123_production_password
+      POSTGRES_DB: archon
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    env_file:
+      - ./ai-service/.env
+    environment:
+      - PORT=50051
+    expose:
+      - "50051"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./gateway/.env
+    environment:
+      - DATABASE_URL=postgres://postgres:vinayak123_production_password@postgres:5432/archon?sslmode=disable
+      - REDIS_URL=redis://redis:6379/0
+      - AI_SERVICE_URL=ai-service:50051
+    depends_on:
+      - postgres
+      - redis
+      - ai-service
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,4 +1,4 @@
-const BASE = "http://localhost:8080";
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -22,8 +22,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const body = await res.json().catch(() => ({}));
     throw new Error(body?.error ?? `HTTP ${res.status}`);
   }
+  // 204 No Content (and similar) have no body — skip JSON parsing
+  if (res.status === 204 || res.headers.get("content-length") === "0") {
+    return undefined as unknown as T;
+  }
   return res.json() as Promise<T>;
 }
+
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -69,6 +74,10 @@ export async function apiCreateProject(name: string): Promise<Project> {
 
 export async function apiGetProject(projectId: string): Promise<Project> {
   return request<Project>(`/api/v1/projects/${projectId}`);
+}
+
+export async function apiDeleteProject(projectId: string): Promise<void> {
+  return request<void>(`/api/v1/projects/${projectId}`, { method: "DELETE" });
 }
 
 // ── Designs ──────────────────────────────────────────────────────────────────
@@ -235,6 +244,7 @@ export interface TaskAssignment {
   assignee_email: string;
   assigned_by: string;
   status: "todo" | "in_progress" | "done";
+  github_issue_url?: string;
   created_at: string;
   updated_at: string;
   // Enrichment fields (My Tasks view)
@@ -288,3 +298,262 @@ export async function apiUpdateTaskStatus(
 export async function apiListMyTasks(): Promise<TaskAssignment[]> {
   return request<TaskAssignment[]>("/api/v1/me/tasks");
 }
+
+export interface TaskMessage {
+  id: string;
+  task_id: string;
+  sender_id?: string;
+  sender_name: string;
+  role: "agent" | "user" | "member";
+  content: string;
+  created_at: string;
+}
+
+export interface GithubAppSettings {
+  installed: boolean;
+  installation_type: "all" | "select";
+  repositories: string;
+}
+
+export async function apiGetTask(id: string): Promise<TaskAssignment> {
+  return request<TaskAssignment>(`/api/v1/tasks/${id}`);
+}
+
+export async function apiListTaskMessages(taskId: string): Promise<TaskMessage[]> {
+  return request<TaskMessage[]>(`/api/v1/tasks/${taskId}/messages`);
+}
+
+export async function apiCreateTaskMessage(taskId: string, content: string): Promise<TaskMessage> {
+  return request<TaskMessage>(`/api/v1/tasks/${taskId}/messages`, {
+    method: "POST",
+    body: JSON.stringify({ content }),
+  });
+}
+
+export async function apiDraftGithubIssueForTask(
+  taskId: string
+): Promise<{ questions: string[] }> {
+  return request<{ questions: string[] }>(`/api/v1/tasks/${taskId}/github/issue/draft`, {
+    method: "POST",
+  });
+}
+
+export async function apiCreateGithubIssueForTask(
+  taskId: string,
+  answers: { question: string; answer: string }[]
+): Promise<TaskAssignment> {
+  return request<TaskAssignment>(`/api/v1/tasks/${taskId}/github/issue`, {
+    method: "POST",
+    body: JSON.stringify({ answers }),
+  });
+}
+
+export async function apiUnlinkGithubIssueForTask(taskId: string): Promise<void> {
+  return request<void>(`/api/v1/tasks/${taskId}/github/issue`, {
+    method: "DELETE",
+  });
+}
+
+export async function apiGetGithubAppSettings(): Promise<GithubAppSettings> {
+  return request<GithubAppSettings>("/api/v1/settings/github-app");
+}
+
+export async function apiUpdateGithubAppSettings(
+  installed: boolean,
+  installationType: "all" | "select",
+  repositories: string
+): Promise<void> {
+  return request<void>("/api/v1/settings/github-app", {
+    method: "POST",
+    body: JSON.stringify({ installed, installation_type: installationType, repositories }),
+  });
+}
+
+export async function apiGetGithubAppInstallURL(): Promise<{ url: string }> {
+  return request<{ url: string }>("/api/v1/settings/github-app/install-url");
+}
+
+export interface GithubAuthStatus {
+  connected: boolean;
+  username?: string;
+}
+
+export async function apiGetGithubAuthURL(): Promise<{ url: string }> {
+  return request<{ url: string }>("/api/v1/auth/github/url");
+}
+
+export async function apiGetGithubAuthStatus(): Promise<GithubAuthStatus> {
+  return request<GithubAuthStatus>("/api/v1/auth/github/status");
+}
+
+export async function apiDisconnectGithubAuth(): Promise<void> {
+  return request<void>("/api/v1/auth/github", {
+    method: "DELETE",
+  });
+}
+
+export interface GithubRepoItem {
+  name: string;
+  full_name: string;
+  html_url: string;
+}
+
+export async function apiGetGithubRepos(): Promise<GithubRepoItem[]> {
+  return request<GithubRepoItem[]>("/api/v1/auth/github/repos");
+}
+
+export async function apiUpdateProject(
+  projectId: string,
+  repoUrl: string,
+  branch: string
+): Promise<Project> {
+  return request<Project>(`/api/v1/projects/${projectId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ repo_url: repoUrl, branch }),
+  });
+}
+
+export interface GithubPR {
+  id: string;
+  number: number;
+  title: string;
+  author: string;
+  branch: string;
+  targetBranch: string;
+  createdAt: string;
+  status: string;
+  repository: string;
+}
+
+export interface PRActivity {
+  type: "opened" | "comment" | "review_comment" | "commit";
+  author: string;
+  body: string;
+  createdAt: string;
+  file?: string;
+  line?: number;
+}
+
+export interface PRDetails extends GithubPR {
+  additions: number;
+  deletions: number;
+  filesChanged: number;
+  activity: PRActivity[];
+}
+
+export interface PRFile {
+  filename: string;
+  additions: number;
+  deletions: number;
+  status: string;
+  patch: string;
+}
+
+export async function apiListRepoPRs(projectId?: string): Promise<GithubPR[]> {
+  const url = projectId ? `/api/v1/github/prs?project_id=${projectId}` : "/api/v1/github/prs";
+  return request<GithubPR[]>(url);
+}
+
+export async function apiGetPRDetails(number: number, projectId?: string): Promise<PRDetails> {
+  const url = projectId ? `/api/v1/github/prs/${number}?project_id=${projectId}` : `/api/v1/github/prs/${number}`;
+  return request<PRDetails>(url);
+}
+
+export async function apiGetPRFiles(number: number, projectId?: string): Promise<PRFile[]> {
+  const url = projectId ? `/api/v1/github/prs/${number}/files?project_id=${projectId}` : `/api/v1/github/prs/${number}/files`;
+  return request<PRFile[]>(url);
+}
+
+export async function apiCreatePRComment(number: number, body: string, projectId?: string): Promise<{ status: string; mock?: boolean }> {
+  const url = projectId ? `/api/v1/github/prs/${number}/comments?project_id=${projectId}` : `/api/v1/github/prs/${number}/comments`;
+  return request<{ status: string; mock?: boolean }>(url, {
+    method: "POST",
+    body: JSON.stringify({ body }),
+  });
+}
+
+export async function apiMergePR(number: number, projectId?: string): Promise<{ merged: boolean; mock?: boolean }> {
+  const url = projectId ? `/api/v1/github/prs/${number}/merge?project_id=${projectId}` : `/api/v1/github/prs/${number}/merge`;
+  return request<{ merged: boolean; mock?: boolean }>(url, {
+    method: "POST",
+  });
+}
+
+// ── Bidirectional: Checks, Reviewers, Reviews ────────────────────────────────
+
+export interface PRCheckRun {
+  name: string;
+  status: "queued" | "in_progress" | "completed";
+  conclusion: "success" | "failure" | "neutral" | "cancelled" | "skipped" | "timed_out" | "action_required" | null;
+  url: string;
+}
+
+export interface PRReviewer {
+  login: string;
+  avatar_url: string;
+}
+
+export interface PRReview {
+  login: string;
+  avatar_url: string;
+  state: "APPROVED" | "CHANGES_REQUESTED" | "COMMENTED" | "DISMISSED" | "PENDING";
+  submittedAt: string;
+}
+
+export interface PRReviewersResponse {
+  requested: PRReviewer[];
+  reviews: PRReview[];
+}
+
+export interface RepoCollaborator {
+  login: string;
+  avatar_url: string;
+}
+
+export async function apiGetPRChecks(number: number, projectId?: string): Promise<PRCheckRun[]> {
+  const url = projectId ? `/api/v1/github/prs/${number}/checks?project_id=${projectId}` : `/api/v1/github/prs/${number}/checks`;
+  return request<PRCheckRun[]>(url);
+}
+
+export async function apiGetPRReviewers(number: number, projectId?: string): Promise<PRReviewersResponse> {
+  const url = projectId ? `/api/v1/github/prs/${number}/reviewers?project_id=${projectId}` : `/api/v1/github/prs/${number}/reviewers`;
+  return request<PRReviewersResponse>(url);
+}
+
+export async function apiAddPRReviewer(number: number, reviewers: string[], projectId?: string): Promise<{ ok: boolean }> {
+  const url = projectId ? `/api/v1/github/prs/${number}/reviewers?project_id=${projectId}` : `/api/v1/github/prs/${number}/reviewers`;
+  return request<{ ok: boolean }>(url, {
+    method: "POST",
+    body: JSON.stringify({ reviewers }),
+  });
+}
+
+export async function apiRemovePRReviewer(number: number, reviewers: string[], projectId?: string): Promise<{ ok: boolean }> {
+  const url = projectId ? `/api/v1/github/prs/${number}/reviewers?project_id=${projectId}` : `/api/v1/github/prs/${number}/reviewers`;
+  return request<{ ok: boolean }>(url, {
+    method: "DELETE",
+    body: JSON.stringify({ reviewers }),
+  });
+}
+
+export async function apiSubmitPRReview(
+  number: number,
+  event: "APPROVE" | "REQUEST_CHANGES" | "COMMENT",
+  body: string,
+  projectId?: string
+): Promise<{ ok: boolean }> {
+  const url = projectId ? `/api/v1/github/prs/${number}/reviews?project_id=${projectId}` : `/api/v1/github/prs/${number}/reviews`;
+  return request<{ ok: boolean }>(url, {
+    method: "POST",
+    body: JSON.stringify({ event, body }),
+  });
+}
+
+export async function apiGetRepoCollaborators(projectId?: string): Promise<RepoCollaborator[]> {
+  const url = projectId ? `/api/v1/github/repos/collaborators?project_id=${projectId}` : "/api/v1/github/repos/collaborators";
+  return request<RepoCollaborator[]>(url);
+}
+
+
+
+

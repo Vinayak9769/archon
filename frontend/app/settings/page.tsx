@@ -1,6 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  apiGetGithubAppSettings,
+  apiUpdateGithubAppSettings,
+  apiGetGithubAppInstallURL,
+  apiGetGithubAuthURL,
+  apiGetGithubAuthStatus,
+  apiDisconnectGithubAuth,
+  type GithubAppSettings,
+  type GithubAuthStatus
+} from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -48,10 +58,86 @@ export default function SettingsPage() {
   const [keyVisible, setKeyVisible] = useState<Record<string, boolean>>({});
   const [inviteEmail, setInviteEmail] = useState("");
 
+  // GitHub App settings state
+  const [appSettings, setAppSettings] = useState<GithubAppSettings | null>(null);
+  const [newRepoName, setNewRepoName] = useState("");
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [installLoading, setInstallLoading] = useState(false);
+
+  // GitHub User OAuth state
+  const [oauthStatus, setOauthStatus] = useState<GithubAuthStatus | null>(null);
+  const [oauthLoading, setOauthLoading] = useState(false);
+
+  function fetchOauthStatus() {
+    apiGetGithubAuthStatus()
+      .then(setOauthStatus)
+      .catch(err => console.error("Failed to fetch GitHub OAuth status:", err));
+  }
+
+  useEffect(() => {
+    apiGetGithubAppSettings()
+      .then(setAppSettings)
+      .catch(err => console.error("Failed to load GitHub App settings:", err));
+    fetchOauthStatus();
+  }, []);
+
+  async function handleConnectGithub() {
+    setOauthLoading(true);
+    try {
+      const { url } = await apiGetGithubAuthURL();
+      window.location.href = url;
+    } catch (err) {
+      console.error("Failed to get authorization redirect:", err);
+      setOauthLoading(false);
+    }
+  }
+
+  async function handleDisconnectGithub() {
+    setOauthLoading(true);
+    try {
+      await apiDisconnectGithubAuth();
+      setOauthStatus({ connected: false });
+    } catch (err) {
+      console.error("Failed to disconnect GitHub account:", err);
+    } finally {
+      setOauthLoading(false);
+    }
+  }
+
+  async function handleUpdateGithubSettings(updated: GithubAppSettings) {
+    setAppSettings(updated);
+    setSavingSettings(true);
+    try {
+      await apiUpdateGithubAppSettings(updated.installed, updated.installation_type, updated.repositories);
+    } catch (err) {
+      console.error("Failed to save GitHub App settings:", err);
+    } finally {
+      setSavingSettings(false);
+    }
+  }
+
+  async function handleInstallApp() {
+    setInstallLoading(true);
+    try {
+      const { url } = await apiGetGithubAppInstallURL();
+      window.open(url, "_blank");
+      // Mark as installed optimistically in the DB so the UI reflects it
+      await handleUpdateGithubSettings({
+        installed: true,
+        installation_type: "all",
+        repositories: "",
+      });
+    } catch (err) {
+      console.error("Failed to get GitHub App install URL:", err);
+    } finally {
+      setInstallLoading(false);
+    }
+  }
+
   const toggleKeyVisibility = (id: string) => setKeyVisible(p => ({ ...p, [id]: !p[id] }));
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-5">
+    <div className="p-6 space-y-5">
       <div>
         <h1 className="text-xl font-semibold text-zinc-100">Settings</h1>
         <p className="text-sm text-zinc-500 mt-0.5">Manage integrations, AI models, and workspace configuration</p>
@@ -68,58 +154,218 @@ export default function SettingsPage() {
 
         {/* GitHub Tab */}
         <TabsContent value="github" className="space-y-4 mt-4">
+          
+          {/* Card 1: GitHub Account Connection (OAuth) */}
           <Card className="bg-[#111113] border-zinc-800/60 p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-sm font-semibold text-zinc-200">GitHub Connection</h2>
-                <p className="text-xs text-zinc-500 mt-0.5">OAuth connected as <span className="text-zinc-300 font-mono">@arjunkumar</span></p>
+                <h2 className="text-sm font-semibold text-zinc-200">GitHub User Connection</h2>
+                <p className="text-xs text-zinc-550 mt-0.5">Authorize Archon to create pull requests, commits, and issue comments using your personal identity.</p>
               </div>
-              <Badge className="text-xs bg-green-500/10 text-green-400 border border-green-500/20 gap-1.5 flex items-center">
-                <CheckCircle2 className="w-3 h-3" /> Connected
-              </Badge>
+              {oauthStatus?.connected ? (
+                <Badge className="text-xs bg-green-500/10 text-green-400 border border-green-500/20 gap-1.5 flex items-center">
+                  <CheckCircle2 className="w-3 h-3" /> Connected
+                </Badge>
+              ) : (
+                <Badge className="text-xs bg-zinc-905 text-zinc-500 border border-zinc-800 gap-1.5 flex items-center">
+                  <XCircle className="w-3 h-3" /> Disconnected
+                </Badge>
+              )}
             </div>
-            <div className="grid grid-cols-3 gap-3 text-center border border-zinc-800 rounded-lg p-3 bg-zinc-900/40 mb-4">
-              {[{ label: "Repos Accessible", value: "23" }, { label: "Orgs", value: "2" }, { label: "Webhooks Active", value: "3" }].map(({ label, value }) => (
-                <div key={label}>
-                  <p className="text-lg font-bold text-zinc-100">{value}</p>
-                  <p className="text-xs text-zinc-500">{label}</p>
+
+            {oauthLoading ? (
+              <div className="flex items-center gap-2 text-xs text-zinc-500 py-2">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Communicating with GitHub...
+              </div>
+            ) : oauthStatus?.connected ? (
+              <div className="space-y-4">
+                <div className="p-3 bg-zinc-900/30 border border-zinc-800 rounded-lg text-xs text-zinc-400">
+                  <span className="font-semibold text-zinc-350">Username:</span> <span className="font-mono text-indigo-400">@{oauthStatus.username}</span>
                 </div>
-              ))}
-            </div>
-            <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-400 hover:text-zinc-200 text-xs gap-1.5">
-              <RefreshCw className="w-3 h-3" /> Reauthorize
-            </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-zinc-800 bg-zinc-950 text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs gap-1.5"
+                  onClick={handleDisconnectGithub}
+                >
+                  Disconnect Account
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-xs text-zinc-550">
+                  Click below to authorize via the GitHub OAuth protocol. (If Client ID is not configured in local environment, this will seamlessly authenticate a mock profile).
+                </p>
+                <Button
+                  size="sm"
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs gap-1.5 font-semibold"
+                  onClick={handleConnectGithub}
+                >
+                  <GitBranch className="w-3.5 h-3.5" /> Connect GitHub Account
+                </Button>
+              </div>
+            )}
           </Card>
 
-          <Card className="bg-[#111113] border-zinc-800/60">
-            <div className="p-4 border-b border-zinc-800/60 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-zinc-200">Connected Repositories</h2>
-              <Button size="sm" className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500 text-white gap-1.5">
-                <Plus className="w-3 h-3" /> Add Repo
-              </Button>
+          {/* Card 2: GitHub App Installation */}
+          <Card className="bg-[#111113] border-zinc-800/60 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-sm font-semibold text-zinc-200">GitHub App Installation</h2>
+                <p className="text-xs text-zinc-550 mt-0.5">Integrate Archon as a native GitHub App for automatic issue creation and commit synchronization.</p>
+              </div>
+              {appSettings?.installed ? (
+                <Badge className="text-xs bg-green-500/10 text-green-400 border border-green-500/20 gap-1.5 flex items-center">
+                  <CheckCircle2 className="w-3 h-3" /> Installed
+                </Badge>
+              ) : (
+                <Badge className="text-xs bg-zinc-905 text-zinc-500 border border-zinc-800 gap-1.5 flex items-center">
+                  <XCircle className="w-3 h-3" /> Not Configured
+                </Badge>
+              )}
             </div>
-            <div className="divide-y divide-zinc-800/60">
-              {connectedRepos.map(r => (
-                <div key={r.repo} className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-800/20">
-                  <GitBranch className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-zinc-200 font-mono">{r.repo}</p>
-                    <p className="text-xs text-zinc-500 mt-0.5">Last sync: {r.lastSync}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {r.webhooks && <Badge className="text-[10px] bg-zinc-800 text-zinc-500 border-zinc-700">webhook</Badge>}
-                    <Badge className={cn("text-[10px] border",
-                      r.status === "active" ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-red-500/10 text-red-400 border-red-500/20")}>
-                      {r.status}
-                    </Badge>
-                    <button className="text-zinc-600 hover:text-zinc-400">
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+
+            {appSettings?.installed ? (
+              <div className="space-y-4">
+                <div className="p-3 bg-zinc-900/30 border border-zinc-800 rounded-lg text-xs text-zinc-400">
+                  <span className="font-semibold text-zinc-350">Status:</span> Connected and authorized. Archon has permission to read metadata, write issues, and sync code in the selected repositories.
                 </div>
-              ))}
-            </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline" size="sm"
+                    className="border-zinc-800 bg-zinc-950 text-zinc-300 text-xs gap-1.5 hover:bg-zinc-900"
+                    onClick={handleInstallApp}
+                    disabled={installLoading}
+                  >
+                    Configure on GitHub <ExternalLink className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs"
+                    onClick={() => {
+                      if (appSettings) {
+                        handleUpdateGithubSettings({ ...appSettings, installed: false });
+                      }
+                    }}
+                  >
+                    Uninstall Integration
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-xs text-zinc-500">
+                  Installing the app grants Archon permission to securely connect your repositories, coordinate code bases, and create issue threads directly in GitHub.
+                </p>
+                <Button
+                  size="sm"
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs gap-1.5 font-semibold"
+                  onClick={handleInstallApp}
+                  disabled={installLoading || savingSettings}
+                >
+                  {installLoading ? "Opening GitHub..." : "Install GitHub App"}
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            )}
           </Card>
+
+          {appSettings?.installed && (
+            <Card className="bg-[#111113] border-zinc-800/60 p-5 space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-200">Repository Access</h3>
+                <p className="text-xs text-zinc-500 mt-0.5">Control which repositories the GitHub App has access to.</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-300 font-semibold">
+                    <input
+                      type="radio"
+                      name="installation_type"
+                      checked={appSettings.installation_type === "all"}
+                      onChange={() => handleUpdateGithubSettings({ ...appSettings, installation_type: "all" })}
+                      className="text-indigo-650 bg-zinc-950 border-zinc-800 focus:ring-0"
+                    />
+                    All Repositories
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-300 font-semibold">
+                    <input
+                      type="radio"
+                      name="installation_type"
+                      checked={appSettings.installation_type === "select"}
+                      onChange={() => handleUpdateGithubSettings({ ...appSettings, installation_type: "select" })}
+                      className="text-indigo-650 bg-zinc-950 border-zinc-800 focus:ring-0"
+                    />
+                    Select Repositories
+                  </label>
+                </div>
+
+                {appSettings.installation_type === "select" && (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={newRepoName}
+                        onChange={e => setNewRepoName(e.target.value)}
+                        placeholder="owner/repo (e.g. acme-corp/api-gateway)"
+                        className="flex-1 h-8 bg-zinc-900 border-zinc-800 text-zinc-200 text-xs"
+                      />
+                      <Button
+                        size="sm"
+                        className="h-8 text-xs bg-indigo-650 hover:bg-indigo-600 text-white font-semibold"
+                        onClick={() => {
+                          if (!newRepoName.trim()) return;
+                          const currentList = appSettings.repositories
+                            ? appSettings.repositories.split(",").map(x => x.trim()).filter(Boolean)
+                            : [];
+                          if (!currentList.includes(newRepoName.trim())) {
+                            currentList.push(newRepoName.trim());
+                            handleUpdateGithubSettings({
+                              ...appSettings,
+                              repositories: currentList.join(",")
+                            });
+                          }
+                          setNewRepoName("");
+                        }}
+                      >
+                        Add Repo
+                      </Button>
+                    </div>
+
+                    <div className="border border-zinc-800 rounded-lg divide-y divide-zinc-900 overflow-hidden bg-zinc-950/20">
+                      {(!appSettings.repositories || appSettings.repositories.split(",").filter(Boolean).length === 0) ? (
+                        <div className="p-3 text-center text-xs text-zinc-600">
+                          No repositories selected. Please add one above.
+                        </div>
+                      ) : (
+                        appSettings.repositories.split(",").map(x => x.trim()).filter(Boolean).map(repo => (
+                          <div key={repo} className="flex items-center justify-between p-3 hover:bg-zinc-900/10">
+                            <span className="text-xs font-mono text-zinc-350">{repo}</span>
+                            <button
+                              className="text-zinc-600 hover:text-red-400 transition-colors"
+                              onClick={() => {
+                                const currentList = appSettings.repositories
+                                  ? appSettings.repositories.split(",").map(x => x.trim()).filter(Boolean)
+                                  : [];
+                                const filtered = currentList.filter(r => r !== repo);
+                                handleUpdateGithubSettings({
+                                  ...appSettings,
+                                  repositories: filtered.join(",")
+                                });
+                              }}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
         </TabsContent>
 
         {/* LLM Providers Tab */}
